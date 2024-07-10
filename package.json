@@ -17,8 +17,9 @@
     "README.md"
   ],
   "scripts": {},
-  "dependencies": {},
-  "devDependencies": {},
+  "devDependencies": {
+    "prettier": "3.3.2"
+  },
   "engines": {
     "node": ">=20.12.x"
   }
