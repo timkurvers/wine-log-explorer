@@ -1,0 +1,25 @@
+{
+  "name": "@timkurvers/wine-relay-explorer",
+  "version": "0.0.1",
+  "description": "Explorer for Wine relay logs",
+  "author": "Tim Kurvers",
+  "repository": "github:timkurvers/wine-relay-explorer",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "keywords": [
+    "wine",
+    "winehq",
+    "crossover"
+  ],
+  "files": [
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {},
+  "engines": {
+    "node": ">=20.12.x"
+  }
+}
