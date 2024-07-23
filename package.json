@@ -18,6 +18,7 @@
   ],
   "scripts": {
     "build": "tsc && vite build",
+    "parse:dev": "./bin/parse.ts",
     "start:dev": "vite",
     "start:preview": "vite preview",
     "test": "vitest",
@@ -26,7 +27,8 @@
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "typescript": "^5.5.3"
+    "typescript": "^5.5.3",
+    "vite-node": "^2.0.3"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
