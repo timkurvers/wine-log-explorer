@@ -7,7 +7,16 @@
     <style>
       html,
       body {
+        background-color: #242424;
+        color: #fff;
         margin: 0;
+      }
+
+      noscript {
+        display: block;
+        padding: 50px;
+        margin: 0 auto;
+        text-align: center;
       }
     </style>
     <script
@@ -17,7 +26,9 @@
     ></script>
   </head>
   <body>
-    <div class="explorer"></div>
+    <div id="container">
+      <noscript> Wine Replay Explorer requires JavaScript to be enabled.</noscript>
+    </div>
     <script type="module" src="/src/index.tsx"></script>
   </body>
 </html>
