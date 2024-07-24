@@ -21,6 +21,7 @@
     "parse:dev": "./bin/parse.ts",
     "start:dev": "vite",
     "start:preview": "vite preview",
+    "style:fix": "prettier . --write",
     "test": "vitest",
     "typecheck": "tsc"
   },

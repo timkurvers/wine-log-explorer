@@ -1,14 +1,8 @@
 import { streamLinesFrom } from '../utils/index'
 
-import {
-  RelayParseResult,
-  RelayProcess,
-  RelayTimelineEntry,
-  RelayTimelineEntryType,
-} from './types'
+import { RelayParseResult, RelayProcess, RelayTimelineEntry, RelayTimelineEntryType } from './types'
 
-const LINE_MATCHER =
-  /(?<pid>[a-f0-9]{4}):(?<tid>[a-f0-9]{4}):(?<type>[a-zA-Z_:]+) +(?<message>.+)/
+const LINE_MATCHER = /(?<pid>[a-f0-9]{4}):(?<tid>[a-f0-9]{4}):(?<type>[a-zA-Z_:]+) +(?<message>.+)/
 
 const CALL_RET_MATCHER =
   /(?:(?:(?<module>[\w]+)\.(?<func>[\w]+))|(?<unknown>.+))\((?<args>[^)]+)?\)(?: retval=(?<retval>[a-f0-9]+))?(?: ret=(?<ret>[a-f0-9]+))?/
@@ -88,10 +82,7 @@ async function parseRelayLog(
     const malformed = LINE_MATCHER.exec(line.slice(1)) as LineMatcherRegexResult
     if (malformed) {
       mode = ParserMode.RECOVERY
-      cache.push(
-        line.slice(0, malformed.index + 1),
-        line.slice(malformed.index + 1),
-      )
+      cache.push(line.slice(0, malformed.index + 1), line.slice(malformed.index + 1))
       continue
     }
 

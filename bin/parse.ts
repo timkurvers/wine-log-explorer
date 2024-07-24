@@ -10,9 +10,7 @@ const { positionals } = parseArgs({ allowPositionals: true })
 
 const [file] = positionals
 
-const rstream = Readable.toWeb(
-  fs.createReadStream(file),
-) as unknown as ReadableStream<Uint8Array>
+const rstream = Readable.toWeb(fs.createReadStream(file)) as unknown as ReadableStream<Uint8Array>
 
 const result = await parseRelayLog(rstream)
 console.log(result)

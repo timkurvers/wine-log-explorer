@@ -6,9 +6,7 @@ export async function* streamLinesFrom(rstream: ReadableStream<Uint8Array>) {
   let reader = rstream.getReader()
   let result = await reader.read()
 
-  let str = result.value
-    ? utf8Decoder.decode(result.value, { stream: true })
-    : ''
+  let str = result.value ? utf8Decoder.decode(result.value, { stream: true }) : ''
 
   const re = /\r?\n/gm
   let startIndex = 0
@@ -21,9 +19,7 @@ export async function* streamLinesFrom(rstream: ReadableStream<Uint8Array>) {
       }
       let remainder = str.slice(startIndex)
       result = await reader.read()
-      const next = result.value
-        ? utf8Decoder.decode(result.value, { stream: true })
-        : ''
+      const next = result.value ? utf8Decoder.decode(result.value, { stream: true }) : ''
       str = remainder + next
       startIndex = re.lastIndex = 0
       continue

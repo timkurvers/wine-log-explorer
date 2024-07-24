@@ -1,12 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 
-export const stripIndent = (
-  strings: TemplateStringsArray,
-  ...params: string[]
-) => {
-  let source = strings
-    .map((string: string, i: number) => `${string}${params[i] || ''}`)
-    .join('')
+export const stripIndent = (strings: TemplateStringsArray, ...params: string[]) => {
+  let source = strings.map((string: string, i: number) => `${string}${params[i] || ''}`).join('')
 
   // See: https://github.com/zspecza/common-tags/blob/master/src/stripIndentTransformer/stripIndentTransformer.js
   const match = source.match(/^[^\S\n]*(?=\S)/gm)
