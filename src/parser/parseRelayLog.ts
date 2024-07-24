@@ -35,19 +35,29 @@ enum ParserMode {
 }
 
 // Overloads
-async function parseRelayLog(input: string): Promise<RelayParseResult>
-async function parseRelayLog(input: Blob): Promise<RelayParseResult>
+async function parseRelayLog(
+  input: string,
+  options?: { onReadProgress?: (bytesRead: number) => void },
+): Promise<RelayParseResult>
+async function parseRelayLog(
+  input: Blob,
+  options?: { onReadProgress?: (bytesRead: number) => void },
+): Promise<RelayParseResult>
 async function parseRelayLog(
   input: ReadableStream<Uint8Array>,
+  options?: { onReadProgress?: (bytesRead: number) => void },
 ): Promise<RelayParseResult>
+
+// TODO: AbortController support
 
 async function parseRelayLog(
   input: string | Blob | ReadableStream<Uint8Array>,
+  options?: { onReadProgress?: (bytesRead: number) => void },
 ): Promise<RelayParseResult> {
   if (typeof input === 'string') {
-    return parseRelayLog(new Blob([input]))
+    return parseRelayLog(new Blob([input]), options)
   } else if (input instanceof Blob) {
-    return parseRelayLog(input.stream())
+    return parseRelayLog(input.stream(), options)
   }
 
   const rstream: ReadableStream<Uint8Array> = input
@@ -55,7 +65,9 @@ async function parseRelayLog(
   const timeline: RelayTimelineEntry[] = []
   const processes: RelayProcess[] = []
 
-  const lines = streamLinesFrom(rstream)
+  const lines = streamLinesFrom(rstream, {
+    onReadProgress: options?.onReadProgress,
+  })
 
   let mode = ParserMode.NORMAL
   const cache = []
