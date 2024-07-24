@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 
-export default defineConfig(({ command }) => ({
+export default defineConfig(({ _command }) => ({
   build: {
     rollupOptions: {
       output: {

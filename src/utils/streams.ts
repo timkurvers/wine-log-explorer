@@ -1,5 +1,3 @@
-/* eslint-disable import/prefer-default-export */
-
 // See: https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader/read#example_2_-_handling_text_line_by_line
 export async function* streamLinesFrom(
   rstream: ReadableStream<Uint8Array>,
@@ -8,7 +6,7 @@ export async function* streamLinesFrom(
   let bytesRead = 0
 
   const utf8Decoder = new TextDecoder('utf8')
-  let reader = rstream.getReader()
+  const reader = rstream.getReader()
   let result = await reader.read()
 
   if (result.value) {
@@ -22,12 +20,12 @@ export async function* streamLinesFrom(
   let startIndex = 0
 
   while (true) {
-    let match = re.exec(str)
+    const match = re.exec(str)
     if (!match) {
       if (result.done) {
         break
       }
-      let remainder = str.slice(startIndex)
+      const remainder = str.slice(startIndex)
       result = await reader.read()
 
       if (result.value) {

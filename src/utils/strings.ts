@@ -1,5 +1,3 @@
-/* eslint-disable import/prefer-default-export */
-
 export const stripIndent = (strings: TemplateStringsArray, ...params: string[]) => {
   let source = strings.map((string: string, i: number) => `${string}${params[i] || ''}`).join('')
 
