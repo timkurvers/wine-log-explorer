@@ -8,7 +8,9 @@ import '@mantine/dropzone/styles.css'
 
 import RelayLog from './views/RelayLog'
 import SelectRelayLog from './views/SelectRelayLog'
-import { type ExplorerFile } from './types'
+import type { ExplorerFile } from './types'
+
+import classes from './Explorer.module.css'
 
 const Explorer = () => {
   const [files, setFiles] = useState<ExplorerFile[]>([])
@@ -46,12 +48,13 @@ const Explorer = () => {
   )
 
   return (
-    <Tabs radius="xs" value={activeTab} onChange={setActiveTab}>
+    <Tabs radius="xs" value={activeTab} onChange={setActiveTab} className={classes.tabs}>
       <Tabs.List>
         {files.map((file) => (
           <Tabs.Tab
             key={file.uuid}
             value={file.uuid}
+            // TODO: Add hover state
             rightSection={<CloseButton size="sm" onClick={(e) => onFileClose(e, file)} />}
           >
             {file.name}
@@ -63,12 +66,12 @@ const Explorer = () => {
       </Tabs.List>
 
       {files.map((file) => (
-        <Tabs.Panel key={file.uuid} value={file.uuid} p="md">
+        <Tabs.Panel key={file.uuid} value={file.uuid} p="md" className={classes.tabsPanel}>
           <RelayLog file={file} />
         </Tabs.Panel>
       ))}
 
-      <Tabs.Panel value="new" p="md">
+      <Tabs.Panel value="new" p="md" className={classes.tabsPanel}>
         <SelectRelayLog onSelect={parseSelectedFiles} />
       </Tabs.Panel>
     </Tabs>

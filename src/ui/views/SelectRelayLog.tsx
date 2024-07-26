@@ -1,7 +1,7 @@
 import React, { useRef } from 'react'
 
 import { Dropzone } from '@mantine/dropzone'
-import { Button, Center, Group, Text, useMantineTheme, rem } from '@mantine/core'
+import { Button, Center, Group, Stack, Text, useMantineTheme, rem } from '@mantine/core'
 
 import { IconDownload, IconX } from '@tabler/icons-react'
 
@@ -16,7 +16,7 @@ const SelectRelayLog = (props: SelectRelayLogProps) => {
   // TODO: Add instructions / FAQ on how to generate relay logs
 
   return (
-    <div>
+    <Stack>
       <Dropzone
         openRef={openRef}
         onDrop={(files) => {
@@ -62,7 +62,7 @@ const SelectRelayLog = (props: SelectRelayLogProps) => {
           Select relay logs
         </Button>
       </Center>
-    </div>
+    </Stack>
   )
 }
 

@@ -1,4 +1,4 @@
-import { type RelayParseResult } from '../parser/types'
+import type { RelayParseResult } from '../parser/types'
 
 export interface ExplorerFile {
   uuid: string

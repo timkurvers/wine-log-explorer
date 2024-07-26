@@ -1,10 +1,14 @@
 import React, { useState } from 'react'
 
-import { Group, Paper, RingProgress, Text } from '@mantine/core'
+import { Group, MultiSelect, Paper, RingProgress, Stack, Text } from '@mantine/core'
+import { AutoSizer, List } from 'react-virtualized'
 
 import parseRelayLog from '../../parser/parseRelayLog'
 import { useAsyncEffect } from '../hooks'
-import { type ExplorerFile } from '../types'
+import type { ExplorerFile } from '../types'
+
+import RelayLogEntry from './RelayLogEntry'
+import classes from './RelayLog.module.css'
 
 interface RelayLog {
   file: ExplorerFile
@@ -53,10 +57,33 @@ const RelayLog = (props: RelayLog) => {
     )
   }
 
+  const { processes, timeline } = file.result!
+
   return (
-    <div>
-      This is the content of the <strong>{file.name}</strong> panel
-    </div>
+    <Stack className={classes.root}>
+      <MultiSelect
+        data={processes.map((process) => ({
+          value: process.id,
+          label: process.name || process.id,
+        }))}
+      />
+      <div className={classes.listContainer}>
+        <AutoSizer>
+          {({ height, width }) => (
+            <List
+              width={width}
+              height={height}
+              overscanRowCount={30}
+              rowCount={timeline.length}
+              rowHeight={28}
+              rowRenderer={({ key, style, index }) => (
+                <RelayLogEntry key={key} style={style} entry={timeline[index]} />
+              )}
+            />
+          )}
+        </AutoSizer>
+      </div>
+    </Stack>
   )
 }
 

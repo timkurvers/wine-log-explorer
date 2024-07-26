@@ -8,4 +8,9 @@ export default defineConfig(({ _command }) => ({
       },
     },
   },
+  css: {
+    modules: {
+      localsConvention: 'camelCaseOnly',
+    },
+  },
 }))

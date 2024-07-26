@@ -24,7 +24,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 
   render() {
-    const { children } = this.props
+    const { children } = this.props // eslint-disable-line react/prop-types
     const { error } = this.state
     if (error) {
       return <Error error={error} />

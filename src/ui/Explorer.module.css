@@ -1,0 +1,11 @@
+.tabs {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.tabs-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}

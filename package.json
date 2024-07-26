@@ -20,6 +20,7 @@
     "build": "tsc && vite build",
     "lint": "eslint .",
     "parse:dev": "./bin/parse.ts",
+    "postinstall": "patch-package",
     "start:dev": "vite",
     "start:preview": "vite preview",
     "style:fix": "prettier . --write",
@@ -31,8 +32,11 @@
     "@mantine/dropzone": "^7.11.2",
     "@mantine/hooks": "^7.11.2",
     "@tabler/icons-react": "^3.11.0",
+    "@types/react-virtualized": "^9.21.30",
+    "patch-package": "^8.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-virtualized": "^9.22.5",
     "typescript": "^5.5.3",
     "use-async-effect": "^2.2.7",
     "vite-node": "^2.0.3"
@@ -46,7 +50,7 @@
     "eslint-plugin-react": "^7.35.0",
     "globals": "^15.8.0",
     "prettier": "3.3.2",
-    "typescript-eslint": "^7.17.0",
+    "typescript-eslint": "^8.0.0-alpha.54",
     "vite": "^5.3.3",
     "vitest": "^2.0.2"
   },

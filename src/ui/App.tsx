@@ -9,6 +9,8 @@ import '@mantine/dropzone/styles.css'
 import ErrorBoundary from './components/ErrorBoundary'
 import Explorer from './Explorer'
 
+import classes from './App.module.css'
+
 const App = () => {
   return (
     <MantineProvider forceColorScheme="dark">
@@ -36,7 +38,7 @@ const App = () => {
           </Flex>
         </AppShell.Header>
 
-        <AppShell.Main>
+        <AppShell.Main className={classes.main}>
           <ErrorBoundary>
             <Explorer />
           </ErrorBoundary>
