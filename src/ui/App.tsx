@@ -19,7 +19,7 @@ const App = () => {
           <Flex align="center" direction="row" gap="md" justify="flex-start" mih={55}>
             <IconGlassFullFilled color="#A50D0D" size={36} />
 
-            <Title order={1}>Wine Relay Explorer</Title>
+            <Title order={1}>Wine Log Explorer</Title>
 
             <Badge variant="light" color="blue">
               pre-alpha
@@ -28,7 +28,7 @@ const App = () => {
             <Button
               color="gray"
               component="a"
-              href="https://github.com/timkurvers/wine-relay-explorer"
+              href="https://github.com/timkurvers/wine-log-explorer"
               leftSection={<IconBrandGithubFilled size="1rem" stroke={1.5} />}
               target="_blank"
               variant="outline"

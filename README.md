@@ -1,3 +1,3 @@
-# Wine Relay Explorer
+# Wine Log Explorer
 
 TODO.

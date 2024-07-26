@@ -6,14 +6,14 @@ import { IconPlus } from '@tabler/icons-react'
 import '@mantine/core/styles.css'
 import '@mantine/dropzone/styles.css'
 
-import RelayLog from './views/RelayLog'
-import SelectRelayLog from './views/SelectRelayLog'
-import type { ExplorerFile } from './types'
+import Log from './views/Log'
+import SelectLogFiles from './views/SelectLogFiles'
+import type { LogFile } from './types'
 
 import classes from './Explorer.module.css'
 
 const Explorer = () => {
-  const [files, setFiles] = useState<ExplorerFile[]>([])
+  const [files, setFiles] = useState<LogFile[]>([])
   const [activeTab, setActiveTab] = useState<string | null>('new')
 
   const parseSelectedFiles = useCallback(
@@ -33,7 +33,7 @@ const Explorer = () => {
   )
 
   const onFileClose = useCallback(
-    (e: React.MouseEvent, fileToClose: ExplorerFile) => {
+    (e: React.MouseEvent, fileToClose: LogFile) => {
       e.stopPropagation()
 
       const remaining = files.filter((file) => file !== fileToClose)
@@ -67,12 +67,12 @@ const Explorer = () => {
 
       {files.map((file) => (
         <Tabs.Panel key={file.uuid} value={file.uuid} p="md" className={classes.tabsPanel}>
-          <RelayLog file={file} />
+          <Log file={file} />
         </Tabs.Panel>
       ))}
 
       <Tabs.Panel value="new" p="md" className={classes.tabsPanel}>
-        <SelectRelayLog onSelect={parseSelectedFiles} />
+        <SelectLogFiles onSelect={parseSelectedFiles} />
       </Tabs.Panel>
     </Tabs>
   )

@@ -3,18 +3,18 @@ import React, { useState } from 'react'
 import { Group, MultiSelect, Paper, RingProgress, Stack, Text } from '@mantine/core'
 import { AutoSizer, List } from 'react-virtualized'
 
-import parseRelayLog from '../../parser/parseRelayLog'
+import parseWineLog from '../../parser/parseWineLog'
 import { useAsyncEffect } from '../hooks'
-import type { ExplorerFile } from '../types'
+import type { LogFile } from '../types'
 
-import RelayLogEntry from './RelayLogEntry'
-import classes from './RelayLog.module.css'
+import LogRow from './LogRow'
+import classes from './Log.module.css'
 
-interface RelayLog {
-  file: ExplorerFile
+interface LogProps {
+  file: LogFile
 }
 
-const RelayLog = (props: RelayLog) => {
+const Log = (props: LogProps) => {
   const { file } = props
 
   const [ready, setReady] = useState(false)
@@ -27,7 +27,7 @@ const RelayLog = (props: RelayLog) => {
       return
     }
 
-    file.result = await parseRelayLog(file.file, {
+    file.result = await parseWineLog(file.file, {
       onReadProgress(bytesRead: number) {
         setProgress((bytesRead / file.file.size) * 100)
       },
@@ -57,7 +57,9 @@ const RelayLog = (props: RelayLog) => {
     )
   }
 
-  const { processes, timeline } = file.result!
+  const { processes, entries } = file.result!
+
+  // TODO: Support filtering (by process, thread, message text, class, channel etc)
 
   return (
     <Stack className={classes.root}>
@@ -74,10 +76,10 @@ const RelayLog = (props: RelayLog) => {
               width={width}
               height={height}
               overscanRowCount={30}
-              rowCount={timeline.length}
+              rowCount={entries.length}
               rowHeight={28}
               rowRenderer={({ key, style, index }) => (
-                <RelayLogEntry key={key} style={style} entry={timeline[index]} />
+                <LogRow key={key} style={style} entry={entries[index]} />
               )}
             />
           )}
@@ -87,4 +89,4 @@ const RelayLog = (props: RelayLog) => {
   )
 }
 
-export default RelayLog
+export default Log

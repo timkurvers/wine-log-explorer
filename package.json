@@ -1,9 +1,9 @@
 {
-  "name": "@timkurvers/wine-relay-explorer",
+  "name": "@timkurvers/wine-log-explorer",
   "version": "0.0.1",
-  "description": "Explorer for Wine relay logs",
+  "description": "Explorer for Wine logs",
   "author": "Tim Kurvers",
-  "repository": "github:timkurvers/wine-relay-explorer",
+  "repository": "github:timkurvers/wine-log-explorer",
   "license": "MIT",
   "private": true,
   "type": "module",

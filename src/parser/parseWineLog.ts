@@ -1,14 +1,6 @@
 import { streamLinesFrom } from '../utils/index'
 
-import {
-  RelayParseResult,
-  RelayProcess,
-  RelayThread,
-  RelayTimelineEntry,
-  RelayTimelineEntryType,
-  pid,
-  tid,
-} from './types'
+import { LogParseResult, LogProcess, LogThread, LogEntry, LogEntryType, pid, tid } from './types'
 
 const LINE_MATCHER = /(?<pid>[a-f0-9]{4}):(?<tid>[a-f0-9]{4}):(?<type>[a-zA-Z_:]+) +(?<message>.+)/
 
@@ -24,7 +16,7 @@ type LineMatcherRegexResult = RegExpExecArray & {
     timestamp: string
     pid: string
     tid: string
-    type: RelayTimelineEntryType
+    type: LogEntryType
     message: string
   }
 }
@@ -35,7 +27,7 @@ type CallRetRegexResult = RegExpExecArray & {
     module: string
     func: string
     args: string
-    retval?: RelayTimelineEntryType
+    retval?: LogEntryType
     ret: string
   }
 }
@@ -62,38 +54,38 @@ enum RelayLogger {
 }
 
 // Overloads
-async function parseRelayLog(
+async function parseWineLog(
   input: string,
   options?: { onReadProgress?: (bytesRead: number) => void },
-): Promise<RelayParseResult>
-async function parseRelayLog(
+): Promise<LogParseResult>
+async function parseWineLog(
   input: Blob,
   options?: { onReadProgress?: (bytesRead: number) => void },
-): Promise<RelayParseResult>
-async function parseRelayLog(
+): Promise<LogParseResult>
+async function parseWineLog(
   input: ReadableStream<Uint8Array>,
   options?: { onReadProgress?: (bytesRead: number) => void },
-): Promise<RelayParseResult>
+): Promise<LogParseResult>
 
 // TODO: AbortController support
 // TODO: Comments for this entire implementation
 
-async function parseRelayLog(
+async function parseWineLog(
   input: string | Blob | ReadableStream<Uint8Array>,
   options?: { onReadProgress?: (bytesRead: number) => void },
-): Promise<RelayParseResult> {
+): Promise<LogParseResult> {
   if (typeof input === 'string') {
-    return parseRelayLog(new Blob([input]), options)
+    return parseWineLog(new Blob([input]), options)
   } else if (input instanceof Blob) {
-    return parseRelayLog(input.stream(), options)
+    return parseWineLog(input.stream(), options)
   }
 
   const rstream: ReadableStream<Uint8Array> = input
 
-  const timeline: RelayTimelineEntry[] = []
-  const processes: Record<pid, RelayProcess> = {}
-  const threads: Record<pid, Record<tid, RelayThread>> = {}
-  const contexts: Record<pid, Record<tid, RelayTimelineEntry | undefined>> = {}
+  const entries: LogEntry[] = []
+  const processes: Record<pid, LogProcess> = {}
+  const threads: Record<pid, Record<tid, LogThread>> = {}
+  const contexts: Record<pid, Record<tid, LogEntry | undefined>> = {}
 
   const lines = streamLinesFrom(rstream, {
     onReadProgress: options?.onReadProgress,
@@ -159,14 +151,14 @@ async function parseRelayLog(
 
     const context = contexts[pid][tid]
 
-    const entry: RelayTimelineEntry = { index, process, thread }
+    const entry: LogEntry = { index, process, thread }
     if (context) {
       entry.context = context
     }
 
     switch (type) {
-      case RelayTimelineEntryType.CALL:
-      case RelayTimelineEntryType.RETURN:
+      case LogEntryType.CALL:
+      case LogEntryType.RETURN:
         const crmatch = message.match(CALL_RET_MATCHER) as CallRetRegexResult
         if (!crmatch) {
           throw new Error(`could not parse Call/Ret line: '${line}'`)
@@ -188,7 +180,7 @@ async function parseRelayLog(
           ret,
         })
 
-        if (type === RelayTimelineEntryType.CALL) {
+        if (type === LogEntryType.CALL) {
           Object.assign(entry, {
             args: args?.split(','),
           })
@@ -229,14 +221,14 @@ async function parseRelayLog(
         }
     }
 
-    timeline.push(entry)
+    entries.push(entry)
     ++index
   }
 
   return {
     processes: Object.values(processes),
-    timeline,
+    entries,
   }
 }
 
-export default parseRelayLog
+export default parseWineLog

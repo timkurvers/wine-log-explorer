@@ -6,56 +6,56 @@ export type channel = string
 export type logger = string
 export type module = string
 
-export interface RelayProcess {
+export interface LogProcess {
   id: string
   name: string | null
   path?: string
-  threads: RelayThread[]
+  threads: LogThread[]
 }
 
-export interface RelayThread {
+export interface LogThread {
   id: string
   name: string | null
 }
 
-export enum RelayTimelineEntryType {
+export enum LogEntryType {
   CALL = 'Call',
   RETURN = 'Ret',
   MESSAGE = 'Message',
 }
 
-export interface RelayTimelineCall {
-  type: RelayTimelineEntryType.CALL
+export interface LogEntryCall {
+  type: LogEntryType.CALL
   module: module
   func: string
   args: string[]
   ret: string
 }
 
-export interface RelayTimelineReturn {
-  type: RelayTimelineEntryType.RETURN
+export interface LogEntryReturn {
+  type: LogEntryType.RETURN
   module: module
   func: string
   retval: string
   ret: string
 }
 
-export interface RelayTimelineMessage {
-  type?: RelayTimelineEntryType.MESSAGE
+export interface LogEntryMessage {
+  type?: LogEntryType.MESSAGE
   class?: msgclass
   channel?: channel
   logger?: logger
   message?: string
 }
 
-export type RelayTimelineEntry = {
+export type LogEntry = {
   index: number
-  process: RelayProcess
-  thread: RelayThread
-  context?: RelayTimelineEntry
-} & (RelayTimelineReturn | RelayTimelineCall | RelayTimelineMessage)
+  process: LogProcess
+  thread: LogThread
+  context?: LogEntry
+} & (LogEntryMessage | LogEntryCall | LogEntryReturn)
 
-export interface RelayParseResult {
-  processes: RelayProcess[]
-  timeline: RelayTimelineEntry[]
+export interface LogParseResult {
+  processes: LogProcess[]
+  entries: LogEntry[]
 }

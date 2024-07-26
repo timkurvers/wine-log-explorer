@@ -2,16 +2,19 @@ import React, { useMemo } from 'react'
 
 import { Badge, Group, Text } from '@mantine/core'
 
-import { type RelayTimelineEntry, RelayTimelineEntryType } from '../../parser/types'
+import { type LogEntry, LogEntryType } from '../../parser/types'
 import { IconArrowLeft, IconDots, IconStackPop, IconStackPush } from '@tabler/icons-react'
 
-interface RelayLogEntryProps {
+interface LogRowProps {
   key: string
   style: object
-  entry: RelayTimelineEntry
+  entry: LogEntry
 }
 
-const RelayLogEntry = (props: RelayLogEntryProps) => {
+// TODO: Use classes
+const textSize = 14
+
+const LogRow = (props: LogRowProps) => {
   const { key, style, entry } = props
 
   const indent = useMemo(() => {
@@ -34,14 +37,14 @@ const RelayLogEntry = (props: RelayLogEntryProps) => {
         {Array.from({ length: indent }).map((_, index) => (
           <IconDots size={16} opacity={0.15} key={index} />
         ))}
-        {entry.type === RelayTimelineEntryType.CALL ? (
-          <Text>
+        {entry.type === LogEntryType.CALL ? (
+          <Text fz={textSize}>
             <IconStackPop size={16} />
             <IconStackPush size={16} />
             {entry.module}.<strong>{entry.func}</strong>({entry.args})
           </Text>
-        ) : entry.type === RelayTimelineEntryType.RETURN ? (
-          <Text>
+        ) : entry.type === LogEntryType.RETURN ? (
+          <Text fz={textSize}>
             <IconArrowLeft size={16} /> {entry.retval}
           </Text>
         ) : (
@@ -49,7 +52,7 @@ const RelayLogEntry = (props: RelayLogEntryProps) => {
             <Badge variant="transparent" color="green" m={0}>
               {entry.channel}:{entry.logger}
             </Badge>
-            <Text fz={13}>{entry.message}</Text>
+            <Text fz={textSize}>{entry.message}</Text>
           </>
         )}
       </Group>
@@ -57,4 +60,4 @@ const RelayLogEntry = (props: RelayLogEntryProps) => {
   )
 }
 
-export default RelayLogEntry
+export default LogRow

@@ -5,15 +5,15 @@ import { Button, Center, Group, Stack, Text, useMantineTheme, rem } from '@manti
 
 import { IconDownload, IconX } from '@tabler/icons-react'
 
-interface SelectRelayLogProps {
+interface SelectLogFilesProps {
   onSelect: (files: File[]) => void
 }
 
-const SelectRelayLog = (props: SelectRelayLogProps) => {
+const SelectLogFiles = (props: SelectLogFilesProps) => {
   const theme = useMantineTheme()
   const openRef = useRef<() => void>(null)
 
-  // TODO: Add instructions / FAQ on how to generate relay logs
+  // TODO: Add instructions / FAQ on how to generate compatible Wine logs (incl. relay)
 
   return (
     <Stack>
@@ -50,7 +50,7 @@ const SelectRelayLog = (props: SelectRelayLogProps) => {
           </Group>
 
           <Text ta="center" fz="sm" mt="xs" c="dimmed">
-            Drag-and-drop relay logs here to process. Alternatively, use the button below.
+            Drag-and-drop one or more Wine log files to parse. Alternatively, use the button below.
             <br />
             <strong>Note</strong>: The log files selected are not uploaded to any server.
           </Text>
@@ -59,11 +59,11 @@ const SelectRelayLog = (props: SelectRelayLogProps) => {
 
       <Center>
         <Button size="md" radius="xl" onClick={() => openRef.current?.()}>
-          Select relay logs
+          Select Wine log files
         </Button>
       </Center>
     </Stack>
   )
 }
 
-export default SelectRelayLog
+export default SelectLogFiles

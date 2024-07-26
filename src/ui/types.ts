@@ -1,8 +1,8 @@
-import type { RelayParseResult } from '../parser/types'
+import type { LogParseResult } from '../parser/types'
 
-export interface ExplorerFile {
+export interface LogFile {
   uuid: string
   name: string
   file: File
-  result?: RelayParseResult
+  result?: LogParseResult
 }

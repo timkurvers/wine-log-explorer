@@ -10,7 +10,7 @@ const Error = (props: ErrorProps) => {
   const { error } = props
 
   const openissue = (
-    <a href="https://github.com/timkurvers/wine-relay-explorer/issues">open an issue</a>
+    <a href="https://github.com/timkurvers/wine-log-explorer/issues">open an issue</a>
   )
 
   const { name, message } = error
@@ -31,7 +31,7 @@ const Error = (props: ErrorProps) => {
       <div>
         <h3>Whoops, an error occurred!</h3>
 
-        <p>If you believe this to be a bug in Wine Relay Explorer, please {openissue}.</p>
+        <p>If you believe this to be a bug in Wine Log Explorer, please {openissue}.</p>
 
         <details>
           <summary>Technical details</summary>
