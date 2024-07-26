@@ -6,7 +6,6 @@ import { type LogEntry, LogEntryType } from '../../parser/types'
 import { IconArrowLeft, IconDots, IconStackPop, IconStackPush } from '@tabler/icons-react'
 
 interface LogRowProps {
-  key: string
   style: object
   entry: LogEntry
 }
@@ -15,7 +14,7 @@ interface LogRowProps {
 const textSize = 14
 
 const LogRow = (props: LogRowProps) => {
-  const { key, style, entry } = props
+  const { style, entry } = props
 
   const indent = useMemo(() => {
     let level = 0
@@ -28,7 +27,7 @@ const LogRow = (props: LogRowProps) => {
   }, [entry])
 
   return (
-    <Group key={key} style={style}>
+    <Group style={style}>
       <Badge variant="light">{entry.process.name || entry.process.id}</Badge>
       <Badge variant="light" color="yellow">
         {entry.thread.name || entry.thread.id}
