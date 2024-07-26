@@ -1,5 +1,6 @@
 export type pid = string
 export type tid = string
+export type pidtid = string
 export type msgclass = string
 export type channel = string
 export type logger = string
@@ -7,7 +8,14 @@ export type module = string
 
 export interface RelayProcess {
   id: string
-  name: string
+  name: string | null
+  path?: string
+  threads: RelayThread[]
+}
+
+export interface RelayThread {
+  id: string
+  name: string | null
 }
 
 export enum RelayTimelineEntryType {
@@ -21,7 +29,7 @@ export interface RelayTimelineCall {
   module: module
   func: string
   args: string[]
-  address: number
+  ret: string
 }
 
 export interface RelayTimelineReturn {
@@ -29,10 +37,11 @@ export interface RelayTimelineReturn {
   module: module
   func: string
   retval: string
-  address: number
+  ret: string
 }
 
 export interface RelayTimelineMessage {
+  type?: RelayTimelineEntryType.MESSAGE
   class?: msgclass
   channel?: channel
   logger?: logger
@@ -41,8 +50,9 @@ export interface RelayTimelineMessage {
 
 export type RelayTimelineEntry = {
   index: number
-  pid: pid
-  tid: tid
+  process: RelayProcess
+  thread: RelayThread
+  context?: RelayTimelineEntry
 } & (RelayTimelineReturn | RelayTimelineCall | RelayTimelineMessage)
 
 export interface RelayParseResult {

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { stripIndent } from '../utils/index'
 
 import parseRelayLog from './parseRelayLog'
-import { type RelayProcess } from './types'
+import { type RelayProcess, type RelayTimelineEntry, RelayTimelineEntryType } from './types'
 
 describe('parseRelayLog', () => {
   const input = stripIndent`
@@ -23,11 +23,27 @@ describe('parseRelayLog', () => {
     00c8:00cc:Ret  KERNEL32.CreateToolhelp32Snapshot() retval=00000050 ret=140001656
   `
 
-  const timeline = [
+  const processes: RelayProcess[] = [
+    {
+      id: '00c8',
+      name: null,
+      threads: [
+        {
+          id: '00cc',
+          name: null,
+        },
+      ],
+    },
+  ]
+
+  const process00c8 = processes[0]
+  const thread00cc = process00c8.threads[0]
+
+  const timeline: RelayTimelineEntry[] = [
     {
       index: 0,
-      pid: '00c8',
-      tid: '00cc',
+      process: process00c8,
+      thread: thread00cc,
       class: 'trace',
       channel: 'module',
       logger: 'map_image_into_view',
@@ -36,8 +52,8 @@ describe('parseRelayLog', () => {
     },
     {
       index: 1,
-      pid: '00c8',
-      tid: '00cc',
+      process: process00c8,
+      thread: thread00cc,
       class: 'trace',
       channel: 'module',
       logger: 'map_image_into_view',
@@ -46,9 +62,9 @@ describe('parseRelayLog', () => {
     },
     {
       index: 2,
-      pid: '00c8',
-      tid: '00cc',
-      type: 'Call',
+      process: process00c8,
+      thread: thread00cc,
+      type: RelayTimelineEntryType.CALL,
       module: 'KERNEL32',
       func: 'CreateToolhelp32Snapshot',
       args: ['00000002', '00000000'],
@@ -56,8 +72,8 @@ describe('parseRelayLog', () => {
     },
     {
       index: 3,
-      pid: '00c8',
-      tid: '00cc',
+      process: process00c8,
+      thread: thread00cc,
       class: 'fixme',
       channel: 'thread',
       logger: 'get_thread_times',
@@ -65,9 +81,9 @@ describe('parseRelayLog', () => {
     },
     {
       index: 4,
-      pid: '00c8',
-      tid: '00cc',
-      type: 'Call',
+      process: process00c8,
+      thread: thread00cc,
+      type: RelayTimelineEntryType.CALL,
       module: 'ntdll',
       func: 'RtlRunOnceExecuteOnce',
       args: ['6fffffcc4780', '6fffffc8b790', '00000000', '00000000'],
@@ -75,9 +91,9 @@ describe('parseRelayLog', () => {
     },
     {
       index: 5,
-      pid: '00c8',
-      tid: '00cc',
-      type: 'Ret',
+      process: process00c8,
+      thread: thread00cc,
+      type: RelayTimelineEntryType.RETURN,
       module: 'ntdll',
       func: 'RtlRunOnceExecuteOnce',
       retval: '00000000',
@@ -85,9 +101,9 @@ describe('parseRelayLog', () => {
     },
     {
       index: 6,
-      pid: '00c8',
-      tid: '00cc',
-      type: 'Ret',
+      process: process00c8,
+      thread: thread00cc,
+      type: RelayTimelineEntryType.RETURN,
       module: 'KERNEL32',
       func: 'CreateToolhelp32Snapshot',
       retval: '00000050',
@@ -95,7 +111,12 @@ describe('parseRelayLog', () => {
     },
   ]
 
-  const processes: RelayProcess[] = []
+  // Restore context references
+  const [_i0, _i1, i2, i3, i4, i5, i6] = timeline
+  timeline[i3.index].context = i2
+  timeline[i4.index].context = i2
+  timeline[i5.index].context = i4
+  timeline[i6.index].context = i2
 
   it('parses given relay log', async () => {
     const result = await parseRelayLog(input)
@@ -138,16 +159,87 @@ describe('parseRelayLog', () => {
 
       const result = await parseRelayLog(fancy)
 
-      expect(result.processes).toEqual([])
+      expect(result.processes).toEqual(processes)
       expect(result.timeline).toEqual([
         {
+          index: 0,
+          process: process00c8,
+          thread: thread00cc,
           channel: 'locale',
           class: 'trace',
-          index: 0,
           logger: 'print_fancy_chars',
           message: '(a Ā 𐀀 文 🦄)',
-          pid: '00c8',
-          tid: '00cc',
+        },
+      ])
+    })
+  })
+
+  describe('when process and thread information is available', () => {
+    it('exposes this in the parsed result', async () => {
+      const info = stripIndent`
+        ** Thu Jul 11 21:44:13 2024
+        00aa:00aa:trace:module:get_load_order looking for L"C:\\\\path\\\\to\\\\process.exe"
+        00aa:00aa:trace:module:get_load_order looking for L"C:\\\\windows\\\\system32\\\\kernel32.dll"
+        00aa:00aa:warn:threadname:NtSetInformationThread Thread renamed to L"initial thread name"
+        00aa:00aa:warn:threadname:NtSetInformationThread Thread renamed to L"thread name"
+      `
+
+      const result = await parseRelayLog(info)
+
+      const processes: RelayProcess[] = [
+        {
+          id: '00aa',
+          name: 'process.exe',
+          path: 'C:\\path\\to\\process.exe',
+          threads: [
+            {
+              id: '00aa',
+              name: 'thread name',
+            },
+          ],
+        },
+      ]
+
+      const process00aa = processes[0]
+      const thread00aa = process00aa.threads[0]
+
+      expect(result.processes).toEqual(processes)
+      expect(result.timeline).toEqual([
+        {
+          index: 0,
+          process: process00aa,
+          thread: thread00aa,
+          channel: 'module',
+          class: 'trace',
+          logger: 'get_load_order',
+          message: 'looking for L"C:\\\\path\\\\to\\\\process.exe"',
+        },
+        {
+          index: 1,
+          process: process00aa,
+          thread: thread00aa,
+          channel: 'module',
+          class: 'trace',
+          logger: 'get_load_order',
+          message: 'looking for L"C:\\\\windows\\\\system32\\\\kernel32.dll"',
+        },
+        {
+          index: 2,
+          process: process00aa,
+          thread: thread00aa,
+          channel: 'threadname',
+          class: 'warn',
+          logger: 'NtSetInformationThread',
+          message: 'Thread renamed to L"initial thread name"',
+        },
+        {
+          index: 3,
+          process: process00aa,
+          thread: thread00aa,
+          channel: 'threadname',
+          class: 'warn',
+          logger: 'NtSetInformationThread',
+          message: 'Thread renamed to L"thread name"',
         },
       ])
     })

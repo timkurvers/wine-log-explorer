@@ -1,11 +1,23 @@
 import { streamLinesFrom } from '../utils/index'
 
-import { RelayParseResult, RelayProcess, RelayTimelineEntry, RelayTimelineEntryType } from './types'
+import {
+  RelayParseResult,
+  RelayProcess,
+  RelayThread,
+  RelayTimelineEntry,
+  RelayTimelineEntryType,
+  pid,
+  tid,
+} from './types'
 
 const LINE_MATCHER = /(?<pid>[a-f0-9]{4}):(?<tid>[a-f0-9]{4}):(?<type>[a-zA-Z_:]+) +(?<message>.+)/
 
 const CALL_RET_MATCHER =
   /(?:(?:(?<module>[\w]+)\.(?<func>[\w]+))|(?<unknown>.+))\((?<args>[^)]+)?\)(?: retval=(?<retval>[a-f0-9]+))?(?: ret=(?<ret>[a-f0-9]+))?/
+
+const WIDE_STRING_MATCHER = /L"(?<string>.+)"/
+
+const BASENAME_MATCHER = /[^\\]+$/
 
 type LineMatcherRegexResult = RegExpExecArray & {
   groups: {
@@ -28,10 +40,25 @@ type CallRetRegexResult = RegExpExecArray & {
   }
 }
 
+type WideStringMatcherRegexResult = RegExpExecArray & {
+  groups: {
+    string: string
+  }
+}
+
 enum ParserMode {
   NORMAL,
   RECOVERY,
   BACKFILL_FROM_CACHE,
+}
+
+enum RelayChannel {
+  MODULE = 'module',
+  THREADNAME = 'threadname',
+}
+
+enum RelayLogger {
+  GET_LOAD_ORDER = 'get_load_order',
 }
 
 // Overloads
@@ -49,6 +76,7 @@ async function parseRelayLog(
 ): Promise<RelayParseResult>
 
 // TODO: AbortController support
+// TODO: Comments for this entire implementation
 
 async function parseRelayLog(
   input: string | Blob | ReadableStream<Uint8Array>,
@@ -63,7 +91,9 @@ async function parseRelayLog(
   const rstream: ReadableStream<Uint8Array> = input
 
   const timeline: RelayTimelineEntry[] = []
-  const processes: RelayProcess[] = []
+  const processes: Record<pid, RelayProcess> = {}
+  const threads: Record<pid, Record<tid, RelayThread>> = {}
+  const contexts: Record<pid, Record<tid, RelayTimelineEntry | undefined>> = {}
 
   const lines = streamLinesFrom(rstream, {
     onReadProgress: options?.onReadProgress,
@@ -112,7 +142,27 @@ async function parseRelayLog(
 
     const { pid, tid, type, message } = match.groups
 
-    const entry = { index, pid, tid }
+    let process = processes[pid]
+    if (!process) {
+      process = { id: pid, name: null, threads: [] }
+      processes[pid] = process
+      threads[pid] = {}
+      contexts[pid] = {}
+    }
+
+    let thread = threads[pid][tid]
+    if (!thread) {
+      thread = { id: tid, name: null }
+      threads[pid][tid] = thread
+      processes[pid].threads.push(thread)
+    }
+
+    const context = contexts[pid][tid]
+
+    const entry: RelayTimelineEntry = { index, process, thread }
+    if (context) {
+      entry.context = context
+    }
 
     switch (type) {
       case RelayTimelineEntryType.CALL:
@@ -142,20 +192,41 @@ async function parseRelayLog(
           Object.assign(entry, {
             args: args?.split(','),
           })
+
+          contexts[pid][tid] = entry
         } else {
           Object.assign(entry, {
             retval,
           })
+
+          contexts[pid][tid] = context?.context
         }
         break
       default:
         const [cls, channel, logger] = type.split(':')
+
         Object.assign(entry, {
           channel,
           class: cls,
           logger,
           message,
         })
+
+        if (channel === RelayChannel.THREADNAME) {
+          const strmatch = message.match(WIDE_STRING_MATCHER) as WideStringMatcherRegexResult
+          if (strmatch) {
+            thread.name = strmatch.groups.string
+          }
+        } else if (channel === RelayChannel.MODULE && logger === RelayLogger.GET_LOAD_ORDER) {
+          const strmatch = message.match(WIDE_STRING_MATCHER) as WideStringMatcherRegexResult
+          if (strmatch && !process.path) {
+            process.path = strmatch.groups.string.replaceAll('\\\\', '\\')
+            process.name = process.path.match(BASENAME_MATCHER)![0]
+          }
+          if (!strmatch) {
+            throw new Error(`could not extract wide string from message: ${message}`)
+          }
+        }
     }
 
     timeline.push(entry)
@@ -163,7 +234,7 @@ async function parseRelayLog(
   }
 
   return {
-    processes,
+    processes: Object.values(processes),
     timeline,
   }
 }
