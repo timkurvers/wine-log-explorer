@@ -1,6 +1,9 @@
 import React from 'react'
 
-import { Paper } from '@mantine/core'
+import { Alert, Anchor, Box, Text } from '@mantine/core'
+import { IconExclamationCircle } from '@tabler/icons-react'
+
+import classes from './Error.module.css'
 
 interface ErrorProps {
   error: Error
@@ -10,7 +13,7 @@ const Error = (props: ErrorProps) => {
   const { error } = props
 
   const openissue = (
-    <a href="https://github.com/timkurvers/wine-log-explorer/issues">open an issue</a>
+    <Anchor href="https://github.com/timkurvers/wine-log-explorer/issues">open an issue</Anchor>
   )
 
   const { name, message } = error
@@ -27,21 +30,21 @@ const Error = (props: ErrorProps) => {
   }
 
   return (
-    <Paper>
-      <div>
-        <h3>Whoops, an error occurred!</h3>
+    <Box p="md">
+      <Alert
+        variant="light"
+        color="red"
+        icon={<IconExclamationCircle />}
+        title="Whoops, an error occurred!"
+      >
+        <Text>If you believe this to be a bug in Wine Log Explorer, please {openissue}.</Text>
 
-        <p>If you believe this to be a bug in Wine Log Explorer, please {openissue}.</p>
-
-        <details>
-          <summary>Technical details</summary>
-          <pre>
-            {label}
-            {stack}
-          </pre>
-        </details>
-      </div>
-    </Paper>
+        <pre className={classes.pre}>
+          {label}
+          {stack}
+        </pre>
+      </Alert>
+    </Box>
   )
 }
 
