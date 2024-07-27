@@ -18,9 +18,9 @@ const LogRow = (props: LogRowProps) => {
 
   const indent = useMemo(() => {
     let level = 0
-    let current = entry.context
+    let current = entry.parent
     while (current) {
-      current = current?.context
+      current = current?.parent
       ++level
     }
     return level

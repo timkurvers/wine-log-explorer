@@ -24,36 +24,40 @@ export enum LogEntryType {
   MESSAGE = 'Message',
 }
 
-export interface LogEntryCall {
-  type: LogEntryType.CALL
-  module: module
-  func: string
-  args: string[]
-  ret: string
-}
-
-export interface LogEntryReturn {
-  type: LogEntryType.RETURN
-  module: module
-  func: string
-  retval: string
-  ret: string
-}
-
-export interface LogEntryMessage {
-  type?: LogEntryType.MESSAGE
-  class?: msgclass
-  channel?: channel
-  logger?: logger
-  message?: string
-}
-
-export type LogEntry = {
+interface LogEntryCommon {
   index: number
   process: LogProcess
   thread: LogThread
-  context?: LogEntry
-} & (LogEntryMessage | LogEntryCall | LogEntryReturn)
+  parent?: LogEntryCall
+}
+
+interface LogEntryRelayCommon {
+  module: module
+  func: string
+  callsite: string
+}
+
+export type LogEntryMessage = LogEntryCommon & {
+  type?: LogEntryType.MESSAGE
+  class: msgclass
+  channel: channel
+  logger: logger
+  message: string
+}
+
+export type LogEntryCall = LogEntryCommon &
+  LogEntryRelayCommon & {
+    type: LogEntryType.CALL
+    args: string[]
+  }
+
+export type LogEntryReturn = LogEntryCommon &
+  LogEntryRelayCommon & {
+    type: LogEntryType.RETURN
+    retval: string
+  }
+
+export type LogEntry = LogEntryMessage | LogEntryCall | LogEntryReturn
 
 export interface LogParseResult {
   processes: LogProcess[]

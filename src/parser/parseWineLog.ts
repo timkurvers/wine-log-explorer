@@ -1,11 +1,20 @@
 import { streamLinesFrom } from '../utils/index'
 
-import { LogParseResult, LogProcess, LogThread, LogEntry, LogEntryType, pid, tid } from './types'
+import {
+  type LogParseResult,
+  type LogProcess,
+  type LogThread,
+  type LogEntry,
+  type LogEntryCall,
+  LogEntryType,
+  type pid,
+  type tid,
+} from './types'
 
 const LINE_MATCHER = /(?<pid>[a-f0-9]{4}):(?<tid>[a-f0-9]{4}):(?<type>[a-zA-Z_:]+) +(?<message>.+)/
 
 const CALL_RET_MATCHER =
-  /(?:(?:(?<module>[\w]+)\.(?<func>[\w]+))|(?<unknown>.+))\((?<args>[^)]+)?\)(?: retval=(?<retval>[a-f0-9]+))?(?: ret=(?<ret>[a-f0-9]+))?/
+  /(?:(?:(?<module>[\w]+)\.(?<func>[\w]+))|(?<unknown>.+))\((?<args>[^)]+)?\)(?: retval=(?<retval>[a-f0-9]+))?(?: ret=(?<callsite>[a-f0-9]+))?/
 
 const WIDE_STRING_MATCHER = /L"(?<string>.+)"/
 
@@ -27,8 +36,8 @@ type CallRetRegexResult = RegExpExecArray & {
     module: string
     func: string
     args: string
-    retval?: LogEntryType
-    ret: string
+    retval: string
+    callsite: string
   }
 }
 
@@ -85,7 +94,7 @@ async function parseWineLog(
   const entries: LogEntry[] = []
   const processes: Record<pid, LogProcess> = {}
   const threads: Record<pid, Record<tid, LogThread>> = {}
-  const contexts: Record<pid, Record<tid, LogEntry | undefined>> = {}
+  const contexts: Record<pid, Record<tid, LogEntryCall | undefined>> = {}
 
   const lines = streamLinesFrom(rstream, {
     onReadProgress: options?.onReadProgress,
@@ -151,10 +160,8 @@ async function parseWineLog(
 
     const context = contexts[pid][tid]
 
-    const entry: LogEntry = { index, process, thread }
-    if (context) {
-      entry.context = context
-    }
+    let entry: LogEntry
+    const common = { index, process, thread }
 
     switch (type) {
       case LogEntryType.CALL:
@@ -165,7 +172,7 @@ async function parseWineLog(
         }
 
         const {
-          groups: { unknown, module, func, args, retval, ret },
+          groups: { unknown, module, func, args, retval, callsite },
         } = crmatch
 
         // TODO: Skipping over unknown Call/Ret entries (for now)
@@ -173,36 +180,32 @@ async function parseWineLog(
           continue
         }
 
-        Object.assign(entry, {
-          type,
-          module,
-          func,
-          ret,
-        })
+        const relayCommon = { module, func, callsite }
 
         if (type === LogEntryType.CALL) {
-          Object.assign(entry, {
+          entry = {
+            type: LogEntryType.CALL,
+            ...common,
+            ...relayCommon,
             args: args?.split(','),
-          })
+          }
 
           contexts[pid][tid] = entry
         } else {
-          Object.assign(entry, {
+          entry = {
+            type: LogEntryType.RETURN,
+            ...common,
+            ...relayCommon,
             retval,
-          })
+          }
 
-          contexts[pid][tid] = context?.context
+          contexts[pid][tid] = context?.parent
         }
         break
       default:
         const [cls, channel, logger] = type.split(':')
 
-        Object.assign(entry, {
-          channel,
-          class: cls,
-          logger,
-          message,
-        })
+        entry = { ...common, channel, class: cls, logger, message }
 
         if (channel === RelayChannel.THREADNAME) {
           const strmatch = message.match(WIDE_STRING_MATCHER) as WideStringMatcherRegexResult
@@ -219,6 +222,10 @@ async function parseWineLog(
             throw new Error(`could not extract wide string from message: ${message}`)
           }
         }
+    }
+
+    if (context) {
+      entry.parent = context
     }
 
     entries.push(entry)

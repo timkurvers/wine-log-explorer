@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { stripIndent } from '../utils/index'
 
 import parseWineLog from './parseWineLog'
-import { type LogProcess, type LogEntry, LogEntryType } from './types'
+import { type LogProcess, type LogEntry, LogEntryType, LogEntryCall } from './types'
 
 describe('parseWineLog', () => {
   const input = stripIndent`
@@ -68,7 +68,7 @@ describe('parseWineLog', () => {
       module: 'KERNEL32',
       func: 'CreateToolhelp32Snapshot',
       args: ['00000002', '00000000'],
-      ret: '140001656',
+      callsite: '140001656',
     },
     {
       index: 3,
@@ -87,7 +87,7 @@ describe('parseWineLog', () => {
       module: 'ntdll',
       func: 'RtlRunOnceExecuteOnce',
       args: ['6fffffcc4780', '6fffffc8b790', '00000000', '00000000'],
-      ret: '6fffffc88542',
+      callsite: '6fffffc88542',
     },
     {
       index: 5,
@@ -97,7 +97,7 @@ describe('parseWineLog', () => {
       module: 'ntdll',
       func: 'RtlRunOnceExecuteOnce',
       retval: '00000000',
-      ret: '6fffffc88542',
+      callsite: '6fffffc88542',
     },
     {
       index: 6,
@@ -107,16 +107,16 @@ describe('parseWineLog', () => {
       module: 'KERNEL32',
       func: 'CreateToolhelp32Snapshot',
       retval: '00000050',
-      ret: '140001656',
+      callsite: '140001656',
     },
   ]
 
-  // Restore context references
+  // Restore parent references
   const [_i0, _i1, i2, i3, i4, i5, i6] = entries
-  entries[i3.index].context = i2
-  entries[i4.index].context = i2
-  entries[i5.index].context = i4
-  entries[i6.index].context = i2
+  entries[i3.index].parent = i2 as LogEntryCall
+  entries[i4.index].parent = i2 as LogEntryCall
+  entries[i5.index].parent = i4 as LogEntryCall
+  entries[i6.index].parent = i2 as LogEntryCall
 
   it('parses given Wine log', async () => {
     const result = await parseWineLog(input)
