@@ -48,7 +48,7 @@ const LogRow = (props: LogRowProps) => {
           </Text>
         ) : (
           <>
-            <Badge variant="transparent" color="green" m={0}>
+            <Badge variant="transparent" color="green" p={0}>
               {entry.channel}:{entry.logger}
             </Badge>
             <Text fz={textSize}>{entry.message}</Text>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 
-import { Group, MultiSelect, Paper, RingProgress, Stack, Text } from '@mantine/core'
+import { MultiSelect, RingProgress, Stack, Text } from '@mantine/core'
 import { AutoSizer, List } from 'react-virtualized'
 
 import parseWineLog from '../../parser/parseWineLog'
@@ -38,22 +38,23 @@ const Log = (props: LogProps) => {
 
   if (!ready) {
     return (
-      <Group>
-        <Paper>
-          <RingProgress
-            label={
-              <Text size="md" ta="center">
-                {Math.ceil(progress)} %
-              </Text>
-            }
-            sections={[{ value: progress, color: 'blue' }]}
-          />
-        </Paper>
+      <Stack flex={1} justify="center" align="center">
+        <RingProgress
+          label={
+            <Text c="blue" size="xl" ta="center">
+              {Math.ceil(progress)}%
+            </Text>
+          }
+          sections={[{ value: progress, color: 'blue' }]}
+          size={180}
+          thickness={15}
+          roundCaps
+        />
 
-        <Text size="xs" ta="center">
-          TODO: Waiting for file to be parsed...
+        <Text c="dimmed" size="md" ta="center">
+          Parsing log file...
         </Text>
-      </Group>
+      </Stack>
     )
   }
 
