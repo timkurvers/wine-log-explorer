@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 
-import { MultiSelect, RingProgress, Stack, Text } from '@mantine/core'
+import { Group, MultiSelect, RingProgress, Stack, Text } from '@mantine/core'
 import { AutoSizer, List } from 'react-virtualized'
 
 import parseWineLog from '../../parser/parseWineLog'
@@ -20,6 +20,9 @@ const Log = (props: LogProps) => {
 
   const [ready, setReady] = useState(false)
   const [progress, setProgress] = useState(0)
+
+  const [selectedProcessIds, setSelectedProcessIds] = useState<string[]>([])
+  const [selectedThreadIds, setSelectedThreadIds] = useState<string[]>([])
 
   // TODO: Abort parsing on unmount
 
@@ -61,24 +64,59 @@ const Log = (props: LogProps) => {
 
   const { processes, entries } = file.result!
 
-  // TODO: Support filtering (by process, thread, message text, class, channel etc)
+  const filteredProcesses = selectedProcessIds.length
+    ? processes.filter((process) => selectedProcessIds.includes(process.id))
+    : processes
 
-  // Remove inlinable entries from shown log
+  const filteredThreadIds = selectedThreadIds.length
+    ? selectedThreadIds
+    : filteredProcesses.flatMap((process) => process.threads.map((thread) => thread.id))
+
   const filtered = entries.filter((entry) => {
+    // Remove inlinable entries from log
     if (entry.type === LogEntryType.RETURN && entry.parent?.inlinable) {
       return false
     }
+
+    if (!filteredProcesses.some((process) => process.id === entry.process.id)) {
+      return false
+    }
+
+    if (!filteredThreadIds.includes(entry.thread.id)) {
+      return false
+    }
+
     return true
   })
 
   return (
     <Stack className={classes.root}>
-      <MultiSelect
-        data={processes.map((process) => ({
-          value: process.id,
-          label: process.name || process.id,
-        }))}
-      />
+      <Group>
+        <MultiSelect
+          placeholder="Processes"
+          data={processes.map((process) => ({
+            value: process.id,
+            label: process.name || process.id,
+          }))}
+          onChange={setSelectedProcessIds}
+          clearable
+          flex={1}
+        />
+        <MultiSelect
+          placeholder="Threads"
+          data={filteredProcesses.map((process) => ({
+            group: `${process.name} (${process.id})`,
+            items: process.threads.map((thread) => ({
+              value: thread.id,
+              label: thread.name || thread.id,
+            })),
+          }))}
+          onChange={setSelectedThreadIds}
+          clearable
+          flex={1}
+        />
+      </Group>
+
       <div className={classes.listContainer}>
         <AutoSizer>
           {({ height, width }) => (
