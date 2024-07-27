@@ -14,7 +14,7 @@ import {
 const LINE_MATCHER = /(?<pid>[a-f0-9]{4}):(?<tid>[a-f0-9]{4}):(?<type>[a-zA-Z_:]+) +(?<message>.+)/
 
 const CALL_RET_MATCHER =
-  /(?:(?:(?<module>[\w]+)\.(?<func>[\w]+))|(?<unknown>.+))\((?<args>[^)]+)?\)(?: retval=(?<retval>[a-f0-9]+))?(?: ret=(?<callsite>[a-f0-9]+))?/
+  /(?:(?:(?<module>[\w]+)\.(?<func>[\w]+))|(?<unknown>.+))\((?<args>.+)?\)(?: retval=(?<retval>[a-f0-9]+))?(?: ret=(?<callsite>[a-f0-9]+))?/
 
 const WIDE_STRING_MATCHER = /L"(?<string>.+)"/
 
@@ -94,7 +94,7 @@ async function parseWineLog(
   const entries: LogEntry[] = []
   const processes: Record<pid, LogProcess> = {}
   const threads: Record<pid, Record<tid, LogThread>> = {}
-  const contexts: Record<pid, Record<tid, LogEntryCall | undefined>> = {}
+  const calls: Record<pid, Record<tid, LogEntryCall | undefined>> = {}
 
   const lines = streamLinesFrom(rstream, {
     onReadProgress: options?.onReadProgress,
@@ -105,6 +105,7 @@ async function parseWineLog(
 
   let line: string = ''
   let index = 0
+  let previous: LogEntry | undefined
   while (true) {
     if (mode === ParserMode.BACKFILL_FROM_CACHE) {
       if (cache.length) {
@@ -148,7 +149,7 @@ async function parseWineLog(
       process = { id: pid, name: null, threads: [] }
       processes[pid] = process
       threads[pid] = {}
-      contexts[pid] = {}
+      calls[pid] = {}
     }
 
     let thread = threads[pid][tid]
@@ -158,7 +159,7 @@ async function parseWineLog(
       processes[pid].threads.push(thread)
     }
 
-    const context = contexts[pid][tid]
+    const call = calls[pid][tid]
 
     let entry: LogEntry
     const common = { index, process, thread }
@@ -190,7 +191,7 @@ async function parseWineLog(
             args: args?.split(','),
           }
 
-          contexts[pid][tid] = entry
+          calls[pid][tid] = entry
         } else {
           entry = {
             type: LogEntryType.RETURN,
@@ -199,7 +200,17 @@ async function parseWineLog(
             retval,
           }
 
-          contexts[pid][tid] = context?.parent
+          // Connect Ret-entry to Call-entry when callsite (address) is a match
+          if (call && entry.callsite === call.callsite) {
+            call.return = entry
+
+            // Mark as inlinable when a Call-entry is immediately followed by its corresponding Ret-entry
+            if (previous === call) {
+              call.inlinable = true
+            }
+          }
+
+          calls[pid][tid] = call?.parent
         }
         break
       default:
@@ -224,11 +235,12 @@ async function parseWineLog(
         }
     }
 
-    if (context) {
-      entry.parent = context
+    if (call) {
+      entry.parent = call
     }
 
     entries.push(entry)
+    previous = entry
     ++index
   }
 

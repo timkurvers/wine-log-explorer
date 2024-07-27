@@ -3,7 +3,13 @@ import { describe, expect, it } from 'vitest'
 import { stripIndent } from '../utils/index'
 
 import parseWineLog from './parseWineLog'
-import { type LogProcess, type LogEntry, LogEntryType, LogEntryCall } from './types'
+import {
+  type LogProcess,
+  type LogEntry,
+  LogEntryType,
+  type LogEntryCall,
+  type LogEntryReturn,
+} from './types'
 
 describe('parseWineLog', () => {
   const input = stripIndent`
@@ -16,7 +22,7 @@ describe('parseWineLog', () => {
     00c8:00cc:Ret  PE DLL (proc=00006FFFFFFAB810,module=00006FFFFFF40000 L"ntdll.dll",reason=PROCESS_ATTACH,res=000000000021FB00) retval=1
     00c8:00cc:trace:module:map_image_into_view mapping PE file L"\\\\??\\\\C:\\\\winmemdump\\\\build\\\\winmemdump.exe" at 0x140000000-0x140a84000
     00c8:00cc:trace:module:map_image_into_view mapping PE file L"\\\\??\\\\C:\\\\windows\\\\system32\\\\ntdll.dll" at 0x6ffffff40000-0x6ffffffe6000
-    00c8:00cc:Call KERNEL32.CreateToolhelp32Snapshot(00000002,00000000) ret=140001656
+    00c8:00cc:Call KERNEL32.CreateToolhelp32Snapshot(00000002,00000000 L"Random String with )") ret=140001656
     00c8:00cc:fixme:thread:get_thread_times not implemented on this platform
     00c8:00cc:Call ntdll.RtlRunOnceExecuteOnce(6fffffcc4780,6fffffc8b790,00000000,00000000) ret=6fffffc88542
     00c8:00cc:Ret  ntdll.RtlRunOnceExecuteOnce() retval=00000000 ret=6fffffc88542
@@ -67,7 +73,7 @@ describe('parseWineLog', () => {
       type: LogEntryType.CALL,
       module: 'KERNEL32',
       func: 'CreateToolhelp32Snapshot',
-      args: ['00000002', '00000000'],
+      args: ['00000002', '00000000 L"Random String with )"'],
       callsite: '140001656',
     },
     {
@@ -88,6 +94,7 @@ describe('parseWineLog', () => {
       func: 'RtlRunOnceExecuteOnce',
       args: ['6fffffcc4780', '6fffffc8b790', '00000000', '00000000'],
       callsite: '6fffffc88542',
+      inlinable: true,
     },
     {
       index: 5,
@@ -111,12 +118,20 @@ describe('parseWineLog', () => {
     },
   ]
 
-  // Restore parent references
-  const [_i0, _i1, i2, i3, i4, i5, i6] = entries
-  entries[i3.index].parent = i2 as LogEntryCall
-  entries[i4.index].parent = i2 as LogEntryCall
-  entries[i5.index].parent = i4 as LogEntryCall
-  entries[i6.index].parent = i2 as LogEntryCall
+  // Restore circular references
+  const kernelSnapshotCall = entries[2] as LogEntryCall
+  const __threadTimes = entries[3]
+  const __ntdllExecCall = entries[4] as LogEntryCall
+  const ____ntdllExecRet = entries[5] as LogEntryReturn
+  const __kernelSnapshotRet = entries[6] as LogEntryReturn
+
+  __threadTimes.parent = kernelSnapshotCall
+  __ntdllExecCall.parent = kernelSnapshotCall
+  ____ntdllExecRet.parent = __ntdllExecCall
+  __kernelSnapshotRet.parent = kernelSnapshotCall
+
+  kernelSnapshotCall.return = __kernelSnapshotRet
+  __ntdllExecCall.return = ____ntdllExecRet
 
   it('parses given Wine log', async () => {
     const result = await parseWineLog(input)
@@ -134,7 +149,7 @@ describe('parseWineLog', () => {
       wineserver: using server-side synchronization.
 
       00c8:00c8:00cc:trace:module:map_image_into_view mapping PE file L"\\\\??\\\\C:\\\\windows\\\\system32\\\\ntdll.dll" at 0x6ffffff40000-0x6ffffffe6000
-      00c8:00cc:Call KERNEL32.CreateToolhelp32Snapshot(00000002,00000000) ret=140001656
+      00c8:00cc:Call KERNEL32.CreateToolhelp32Snapshot(00000002,00000000 L"Random String with )") ret=140001656
       00cc:trace:module:map_image_into_view mapping PE file L"\\\\??\\\\C:\\\\winmemdump\\\\build\\\\winmemdump.exe" at 0x140000000-0x140a84000
       00c8:00cc:fix00c8:00cc:Call ntdll.RtlRunOnceExecuteOnce(6fffffcc4780,6fffffc8b790,00000000,00000000) ret=6fffffc88542
       me:thread:get_thread_times not implemented on this platform

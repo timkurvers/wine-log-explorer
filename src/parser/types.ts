@@ -48,7 +48,9 @@ export type LogEntryMessage = LogEntryCommon & {
 export type LogEntryCall = LogEntryCommon &
   LogEntryRelayCommon & {
     type: LogEntryType.CALL
-    args: string[]
+    args?: string[]
+    return?: LogEntryReturn
+    inlinable?: boolean
   }
 
 export type LogEntryReturn = LogEntryCommon &
