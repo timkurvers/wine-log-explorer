@@ -4,6 +4,7 @@ import { MultiSelect, RingProgress, Stack, Text } from '@mantine/core'
 import { AutoSizer, List } from 'react-virtualized'
 
 import parseWineLog from '../../parser/parseWineLog'
+import { LogEntryType } from '../../parser/types'
 import { useAsyncEffect } from '../hooks'
 import type { LogFile } from '../types'
 
@@ -62,6 +63,14 @@ const Log = (props: LogProps) => {
 
   // TODO: Support filtering (by process, thread, message text, class, channel etc)
 
+  // Remove inlinable entries from shown log
+  const filtered = entries.filter((entry) => {
+    if (entry.type === LogEntryType.RETURN && entry.parent?.inlinable) {
+      return false
+    }
+    return true
+  })
+
   return (
     <Stack className={classes.root}>
       <MultiSelect
@@ -77,10 +86,10 @@ const Log = (props: LogProps) => {
               width={width}
               height={height}
               overscanRowCount={30}
-              rowCount={entries.length}
-              rowHeight={28}
+              rowCount={filtered.length}
+              rowHeight={24}
               rowRenderer={({ key, style, index }) => (
-                <LogRow key={key} style={style} entry={entries[index]} />
+                <LogRow key={key} style={style} entry={filtered[index]} />
               )}
             />
           )}
