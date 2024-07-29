@@ -1,7 +1,7 @@
 import React, { useRef } from 'react'
 
+import { Anchor, Button, Center, Group, Stack, Text, useMantineTheme } from '@mantine/core'
 import { Dropzone } from '@mantine/dropzone'
-import { Button, Center, Group, Stack, Text, useMantineTheme } from '@mantine/core'
 
 import { IconDownload, IconX } from '@tabler/icons-react'
 
@@ -15,6 +15,18 @@ interface SelectLogFilesProps {
 const SelectLogFiles = (props: SelectLogFilesProps) => {
   const theme = useMantineTheme()
   const openRef = useRef<() => void>(null)
+
+  const version = (
+    <Anchor
+      c="dimmed"
+      fw="bold"
+      href="https://github.com/timkurvers/wine-log-explorer/compare/"
+      opacity={0.75}
+      target="_blank"
+    >
+      (version)
+    </Anchor>
+  )
 
   return (
     <Stack flex={1} justify="space-between" align="center">
@@ -64,8 +76,7 @@ const SelectLogFiles = (props: SelectLogFilesProps) => {
 
       <Stack align="center" gap="xs">
         <Text size="sm" c="dimmed">
-          {/* TODO: Version information and comparison link */}
-          <strong>&copy;2024 Wine Log Explorer</strong>
+          <strong>&copy;2024 Wine Log Explorer {version}</strong>
         </Text>
         <Text ta="center" size="sm" c="dimmed">
           This project is not affiliated with Wine, the Wine Committee or CodeWeavers.
