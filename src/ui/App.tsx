@@ -37,7 +37,7 @@ const App = () => {
                 color="gray"
                 component="a"
                 href="https://github.com/timkurvers/wine-log-explorer"
-                leftSection={<IconBrandGithubFilled size="1rem" stroke={1.5} />}
+                leftSection={<IconBrandGithubFilled size="16" stroke={1.5} />}
                 target="_blank"
                 variant="outline"
               >
