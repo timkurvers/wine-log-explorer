@@ -1,8 +1,10 @@
 import React, { useRef, useState } from 'react'
 
-import { Group, MultiSelect, RingProgress, Stack, Text } from '@mantine/core'
+import { Code, Group, MultiSelect, RingProgress, Stack, Text } from '@mantine/core'
 import { AutoSizer, List } from 'react-virtualized'
+import { IconAlertTriangleFilled } from '@tabler/icons-react'
 
+import Alert from '../components/Alert'
 import Error from '../components/Error'
 import Worker from '../../workers/WineLogParser.worker?worker'
 import { LogEntryType, LogParseResult } from '../../parser/types'
@@ -66,7 +68,7 @@ const Log = (props: LogProps) => {
     [file],
   )
 
-  if (!result) {
+  if (!result || !result.entries.length) {
     return (
       <Stack flex={1} justify="center" align="center">
         <RingProgress
@@ -82,10 +84,16 @@ const Log = (props: LogProps) => {
         />
 
         <Text c="dimmed" size="md" ta="center">
-          Parsing log file...
+          {progress < 100 ? <>Parsing log file...</> : <>Preparing log...</>}
         </Text>
 
         {error && <Error error={error} />}
+
+        {result && !result.entries.length && (
+          <Alert c="yellow" encourageBugReport icon={<IconAlertTriangleFilled />} showLimitations>
+            <Text>This file does not seem to be a Wine log file.</Text>
+          </Alert>
+        )}
       </Stack>
     )
   }

@@ -5,6 +5,7 @@ import { Button, Center, Group, Stack, Text, useMantineTheme, rem } from '@manti
 
 import { IconDownload, IconX } from '@tabler/icons-react'
 
+import Alert from '../components/Alert'
 import classes from './SelectLogFiles.module.css'
 
 interface SelectLogFilesProps {
@@ -15,11 +16,9 @@ const SelectLogFiles = (props: SelectLogFilesProps) => {
   const theme = useMantineTheme()
   const openRef = useRef<() => void>(null)
 
-  // TODO: Add instructions / FAQ on how to generate compatible Wine logs (incl. relay)
-
   return (
     <Stack flex={1} justify="space-between" align="center">
-      <Stack flex={1} justify="center" maw="50%">
+      <Stack flex={1} justify="center" maw="75%">
         <Dropzone
           openRef={openRef}
           onDrop={(files) => {
@@ -30,33 +29,24 @@ const SelectLogFiles = (props: SelectLogFilesProps) => {
             console.error('rejected', { props, args })
           }}
           radius="md"
-          p="xl"
+          pt={100}
+          pb={100}
         >
           <Stack className={classes.dropzone}>
             <Group justify="center">
               <Dropzone.Accept>
-                <IconDownload
-                  style={{ width: rem(50), height: rem(50) }}
-                  color={theme.colors.blue[6]}
-                  stroke={1.5}
-                />
+                <IconDownload size={50} color={theme.colors.blue[6]} stroke={1.5} />
               </Dropzone.Accept>
               <Dropzone.Reject>
-                <IconX
-                  style={{ width: rem(50), height: rem(50) }}
-                  color={theme.colors.red[6]}
-                  stroke={1.5}
-                />
+                <IconX size={50} color={theme.colors.red[6]} stroke={1.5} />
               </Dropzone.Reject>
               <Dropzone.Idle>
-                <IconDownload style={{ width: rem(50), height: rem(50) }} stroke={1.5} />
+                <IconDownload size={50} stroke={1.5} />
               </Dropzone.Idle>
             </Group>
 
             <Text ta="center" fz="sm" mt="xs" c="dimmed">
               Drag-and-drop one or more Wine log files here.
-              <br />
-              <strong>Note</strong>: The log files selected are not uploaded to any server.
             </Text>
           </Stack>
         </Dropzone>
@@ -66,6 +56,10 @@ const SelectLogFiles = (props: SelectLogFilesProps) => {
             Select Wine log files
           </Button>
         </Center>
+
+        <Alert showLimitations>
+          <Text>Files selected are parsed locally in your browser and are not uploaded.</Text>
+        </Alert>
       </Stack>
 
       <Stack align="center" gap="xs">
