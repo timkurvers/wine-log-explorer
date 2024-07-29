@@ -1,12 +1,14 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 
 import { Group, MultiSelect, RingProgress, Stack, Text } from '@mantine/core'
 import { AutoSizer, List } from 'react-virtualized'
 
-import parseWineLog from '../../parser/parseWineLog'
-import { LogEntryType } from '../../parser/types'
+import Error from '../components/Error'
+import Worker from '../../workers/WineLogParser.worker?worker'
+import { LogEntryType, LogParseResult } from '../../parser/types'
 import { useAsyncEffect } from '../hooks'
 import type { LogFile } from '../types'
+import type { WorkerOutputMessageEvent } from '../../workers/WineLogParser.worker'
 
 import LogRow from './LogRow'
 import classes from './Log.module.css'
@@ -18,29 +20,53 @@ interface LogProps {
 const Log = (props: LogProps) => {
   const { file } = props
 
-  const [ready, setReady] = useState(false)
+  const [result, setResult] = useState<LogParseResult | null>(null)
+  const [error, setError] = useState<Error | null>(null)
   const [progress, setProgress] = useState(0)
 
   const [selectedProcessIds, setSelectedProcessIds] = useState<string[]>([])
   const [selectedThreadIds, setSelectedThreadIds] = useState<string[]>([])
 
-  // TODO: Abort parsing on unmount
+  // Hold a reference to worker thread
+  const workerRef = useRef<Worker | null>(null)
 
-  useAsyncEffect(async () => {
-    if (file.result) {
-      return
-    }
+  useAsyncEffect(
+    async () => {
+      // Use a separate worker thread for Wine log parsing
+      const worker = new Worker()
+      workerRef.current = worker
 
-    file.result = await parseWineLog(file.file, {
-      onReadProgress(bytesRead: number) {
-        setProgress((bytesRead / file.file.size) * 100)
-      },
-    })
+      worker.addEventListener('error', (e: ErrorEvent) => {
+        setError(e.error)
+        worker.terminate()
+      })
 
-    setReady(true)
-  }, [])
+      worker.addEventListener('message', (message: WorkerOutputMessageEvent) => {
+        const { data } = message
+        if (data.type === 'progress') {
+          const progress = (data.bytesRead / file.file.size) * 100
+          setProgress(progress)
+        } else if (data.type === 'error') {
+          setError(data.error)
+          worker.terminate()
+        } else if (data.type === 'complete') {
+          worker.terminate()
+          setResult(data.result)
+        }
+      })
 
-  if (!ready) {
+      // Have to transfer File here, as Safari does not support transferring ReadableStream
+      // See: https://bugs.webkit.org/show_bug.cgi?id=262531
+      worker.postMessage(file.file)
+    },
+    () => {
+      // Clean up worker when component unmounts
+      workerRef.current?.terminate()
+    },
+    [file],
+  )
+
+  if (!result) {
     return (
       <Stack flex={1} justify="center" align="center">
         <RingProgress
@@ -58,11 +84,13 @@ const Log = (props: LogProps) => {
         <Text c="dimmed" size="md" ta="center">
           Parsing log file...
         </Text>
+
+        {error && <Error error={error} />}
       </Stack>
     )
   }
 
-  const { processes, entries } = file.result!
+  const { processes, entries } = result
 
   const filteredProcesses = selectedProcessIds.length
     ? processes.filter((process) => selectedProcessIds.includes(process.id))
