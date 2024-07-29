@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react'
 
-import { Code, Group, MultiSelect, RingProgress, Stack, Text } from '@mantine/core'
+import { Group, MultiSelect, RingProgress, Stack, Text } from '@mantine/core'
 import { AutoSizer, List } from 'react-virtualized'
 import { IconAlertTriangleFilled } from '@tabler/icons-react'
 

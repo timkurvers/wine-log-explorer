@@ -1,7 +1,7 @@
 import React, { useRef } from 'react'
 
 import { Dropzone } from '@mantine/dropzone'
-import { Button, Center, Group, Stack, Text, useMantineTheme, rem } from '@mantine/core'
+import { Button, Center, Group, Stack, Text, useMantineTheme } from '@mantine/core'
 
 import { IconDownload, IconX } from '@tabler/icons-react'
 
