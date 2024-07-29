@@ -23,7 +23,7 @@ const App = () => {
               <Title order={1}>Wine Log Explorer</Title>
 
               <Badge variant="light" color="blue">
-                pre-alpha
+                alpha
               </Badge>
             </Group>
 

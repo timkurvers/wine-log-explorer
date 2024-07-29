@@ -1,6 +1,6 @@
 {
   "name": "@timkurvers/wine-log-explorer",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Explorer for Wine logs",
   "author": "Tim Kurvers",
   "repository": "github:timkurvers/wine-log-explorer",
