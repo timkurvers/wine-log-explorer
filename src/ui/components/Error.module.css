@@ -2,4 +2,5 @@
   overflow: auto;
   color: var(--mantine-color-red-text);
   white-space: pre-wrap;
+  margin-bottom: 0;
 }
