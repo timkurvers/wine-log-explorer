@@ -6,6 +6,7 @@ import { IconBrandGithubFilled, IconGlassFullFilled } from '@tabler/icons-react'
 import '@mantine/core/styles.css'
 import '@mantine/dropzone/styles.css'
 
+import ColorSchemeSwitcher from './components/ColorSchemeSwitcher'
 import ErrorBoundary from './components/ErrorBoundary'
 import Explorer from './Explorer'
 
@@ -28,10 +29,7 @@ const App = () => {
             </Group>
 
             <Group>
-              {/* TODO: Color scheme switching */}
-              {/* <Button disabled pl="xs" pr="xs" >
-                <IconSun />
-              </Button> */}
+              <ColorSchemeSwitcher />
 
               <Button
                 color="gray"

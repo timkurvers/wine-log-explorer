@@ -14,9 +14,21 @@
     <style>
       html,
       body {
-        background-color: #242424;
-        color: #fff;
         margin: 0;
+      }
+
+      @media (prefers-color-scheme: light) {
+        body {
+          background-color: #fff;
+          color: #000;
+        }
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: #242424;
+          color: #fff;
+        }
       }
 
       noscript {
