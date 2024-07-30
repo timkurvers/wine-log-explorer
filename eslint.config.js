@@ -8,14 +8,14 @@ import pluginReact from 'eslint-plugin-react'
 import tseslint from 'typescript-eslint'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
-const ignores = fs
+const gitignores = fs
   .readFileSync(path.join(dirname, '.gitignore'), 'utf8')
   .split('\n')
   .filter(Boolean)
 
 export default [
   {
-    ignores,
+    ignores: [...gitignores, 'dist'],
   },
   {
     files: ['**/*.{js,mjs,cjs,ts,jsx,tsx}'],
