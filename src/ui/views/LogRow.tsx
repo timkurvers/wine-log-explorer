@@ -56,7 +56,9 @@ const LogRowInner = (props: LogRowProps) => {
   return (
     <>
       <Badge variant="transparent" color="green" p={0}>
-        {entry.channel}:{entry.logger}
+        {entry.channel}
+        <SyntaxCharacter>:</SyntaxCharacter>
+        {entry.logger}
       </Badge>
       <Text fz={textSize}>{entry.message}</Text>
     </>
