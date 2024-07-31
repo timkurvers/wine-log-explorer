@@ -1,20 +1,19 @@
 export type pid = string
 export type tid = string
-export type pidtid = string
 export type msgclass = string
 export type channel = string
 export type logger = string
 export type module = string
 
 export interface LogProcess {
-  id: string
+  id: pid
   name: string | null
   path?: string
   threads: LogThread[]
 }
 
 export interface LogThread {
-  id: string
+  id: tid
   name: string | null
 }
 
