@@ -14,7 +14,7 @@ import classes from './App.module.css'
 
 const App = () => {
   return (
-    <MantineProvider defaultColorScheme="auto">
+    <MantineProvider defaultColorScheme="dark">
       <AppShell header={{ height: 60 }}>
         <AppShell.Header className={classes.header}>
           <Group mih={55} justify="space-between" wrap="nowrap">
