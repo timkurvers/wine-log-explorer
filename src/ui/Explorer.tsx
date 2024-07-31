@@ -6,7 +6,7 @@ import { IconPlus } from '@tabler/icons-react'
 import '@mantine/core/styles.css'
 import '@mantine/dropzone/styles.css'
 
-import Log from './views/Log'
+import LogLoader from './views/LogLoader'
 import SelectLogFiles from './views/SelectLogFiles'
 import type { LogFile } from './types'
 
@@ -67,7 +67,7 @@ const Explorer = () => {
 
       {files.map((file) => (
         <Tabs.Panel key={file.uuid} value={file.uuid} p="md" className={classes.tabsPanel}>
-          <Log file={file} />
+          <LogLoader file={file} />
         </Tabs.Panel>
       ))}
 
