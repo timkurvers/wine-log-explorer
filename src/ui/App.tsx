@@ -17,18 +17,20 @@ const App = () => {
     <MantineProvider defaultColorScheme="auto">
       <AppShell header={{ height: 60 }}>
         <AppShell.Header className={classes.header}>
-          <Group mih={55} justify="space-between">
-            <Group gap="xs">
+          <Group mih={55} justify="space-between" wrap="nowrap">
+            <Group gap="xs" wrap="nowrap">
               <IconGlassFullFilled color="#A50D0D" size={36} />
 
-              <Title order={1}>Wine Log Explorer</Title>
+              <Title order={1} textWrap="nowrap" visibleFrom="sm">
+                Wine Log Explorer
+              </Title>
 
-              <Badge variant="light" color="blue">
+              <Badge variant="light" color="blue" visibleFrom="sm">
                 alpha
               </Badge>
             </Group>
 
-            <Group>
+            <Group wrap="nowrap">
               <ColorSchemeSwitcher />
 
               <Button
