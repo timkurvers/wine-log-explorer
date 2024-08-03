@@ -68,6 +68,17 @@ const Alert = (props: AlertProps) => {
     </Anchor>
   )
 
+  const timestamps = (
+    <Anchor
+      c={c}
+      fw="bold"
+      href="https://github.com/timkurvers/wine-log-explorer/issues/1"
+      target="_blank"
+    >
+      officially supported
+    </Anchor>
+  )
+
   return (
     <Box p="md">
       <Blockquote variant="light" color={c} icon={icon}>
@@ -82,9 +93,8 @@ const Alert = (props: AlertProps) => {
         {showLimitations && (
           <>
             <Text mt="md">
-              Currently, only log files generated with <Code>+pid, +tid</Code> and <em>without</em>{' '}
-              <Code>+timestamp</Code>
-              are supported.
+              Currently, log files must be generated with <em>at least</em> <Code>+pid</Code>. Logs
+              with <Code>+timestamp</Code> may load correctly, but are not (yet) {timestamps}.
             </Text>
             <Text mt="md">
               Instructions on how to generate logs for {wine}, {cxmac} and {cxlinux}.
