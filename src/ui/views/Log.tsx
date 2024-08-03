@@ -173,7 +173,7 @@ const Log = (props: LogProps) => {
               className={classes.list}
               width={width}
               height={height}
-              overscanRowCount={30}
+              overscanRowCount={15}
               rowCount={filtered.length}
               rowHeight={24}
               rowRenderer={({ key, style, index }) => (
@@ -185,6 +185,7 @@ const Log = (props: LogProps) => {
                   style={style}
                 />
               )}
+              scrollToAlignment="center"
               scrollToIndex={searchIndex}
             />
           )}
