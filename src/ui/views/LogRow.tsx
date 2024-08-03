@@ -8,15 +8,14 @@ import Arrow from '../components/Arrow'
 import BoxCharacter from '../components/BoxCharacter'
 import SyntaxCharacter from '../components/SyntaxCharacter'
 
+import classes from './LogRow.module.css'
+
 interface LogRowProps {
   entry: LogEntry
   isCurrentSearchIndex: boolean
   searchText: string
   style?: object
 }
-
-// TODO: Use classes
-const textSize = 14
 
 const LogRowInner = (props: LogRowProps) => {
   const { entry, isCurrentSearchIndex, searchText } = props
@@ -44,18 +43,18 @@ const LogRowInner = (props: LogRowProps) => {
 
     if (entry.inlinable) {
       return (
-        <Text fz={textSize}>
+        <Text className={classes.text}>
           {line} <Arrow /> <Highlight {...highlightProps}>{entry.return?.retval || '?'}</Highlight>
         </Text>
       )
     }
 
-    return <Text fz={textSize}>{line}</Text>
+    return <Text className={classes.text}>{line}</Text>
   } else if (entry.type === LogEntryType.RETURN) {
     return (
-      <Group gap={0}>
+      <Group gap={0} wrap="nowrap">
         <BoxCharacter.End />
-        <Text fz={textSize}>
+        <Text className={classes.text}>
           <Arrow /> <Highlight {...highlightProps}>{entry.retval}</Highlight>
         </Text>
       </Group>
@@ -64,12 +63,12 @@ const LogRowInner = (props: LogRowProps) => {
 
   return (
     <>
-      <Badge variant="transparent" color="green" p={0}>
+      <Badge variant="transparent" color="green" p={0} flex="none">
         <Highlight {...highlightProps}>{entry.channel}</Highlight>
         <SyntaxCharacter>:</SyntaxCharacter>
         <Highlight {...highlightProps}>{entry.logger}</Highlight>
       </Badge>
-      <Highlight fz={textSize} {...highlightProps}>
+      <Highlight className={classes.text} {...highlightProps}>
         {entry.message}
       </Highlight>
     </>
@@ -96,7 +95,8 @@ const LogRow = (props: LogRowProps) => {
   }, [entry])
 
   return (
-    <Group style={style} gap="sm" wrap="nowrap">
+    // Ensure long entries are allowed to expand beyond 100% width
+    <Group style={{ ...style, minWidth: '100%', width: 'auto' }} gap="sm" wrap="nowrap">
       <Badge variant="light" flex="none">
         {entry.process.name || entry.process.id}
       </Badge>

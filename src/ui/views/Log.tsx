@@ -15,6 +15,8 @@ import { findNextIndexMatching, findPrevIndexMatching } from '../../utils/search
 
 import LogRow from './LogRow'
 
+import classes from './Log.module.css'
+
 interface LogProps {
   result: LogParseResult
 }
@@ -168,6 +170,7 @@ const Log = (props: LogProps) => {
         <AutoSizer>
           {({ height, width }) => (
             <List
+              className={classes.list}
               width={width}
               height={height}
               overscanRowCount={30}
