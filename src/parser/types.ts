@@ -24,7 +24,7 @@ export enum LogEntryType {
 }
 
 interface LogEntryCommon {
-  index: number
+  id: number
   process: LogProcess
   thread: LogThread
   parent?: LogEntryCall

@@ -47,7 +47,7 @@ describe('parseWineLog', () => {
 
   const entries: LogEntry[] = [
     {
-      index: 0,
+      id: 0,
       process: process00c8,
       thread: thread00cc,
       class: 'trace',
@@ -57,7 +57,7 @@ describe('parseWineLog', () => {
         'mapping PE file L"\\\\??\\\\C:\\\\winmemdump\\\\build\\\\winmemdump.exe" at 0x140000000-0x140a84000',
     },
     {
-      index: 1,
+      id: 1,
       process: process00c8,
       thread: thread00cc,
       class: 'trace',
@@ -67,7 +67,7 @@ describe('parseWineLog', () => {
         'mapping PE file L"\\\\??\\\\C:\\\\windows\\\\system32\\\\ntdll.dll" at 0x6ffffff40000-0x6ffffffe6000',
     },
     {
-      index: 2,
+      id: 2,
       process: process00c8,
       thread: thread00cc,
       type: LogEntryType.CALL,
@@ -77,7 +77,7 @@ describe('parseWineLog', () => {
       callsite: '140001656',
     },
     {
-      index: 3,
+      id: 3,
       process: process00c8,
       thread: thread00cc,
       class: 'fixme',
@@ -86,7 +86,7 @@ describe('parseWineLog', () => {
       message: 'not implemented on this platform',
     },
     {
-      index: 4,
+      id: 4,
       process: process00c8,
       thread: thread00cc,
       type: LogEntryType.CALL,
@@ -97,7 +97,7 @@ describe('parseWineLog', () => {
       inlinable: true,
     },
     {
-      index: 5,
+      id: 5,
       process: process00c8,
       thread: thread00cc,
       type: LogEntryType.RETURN,
@@ -107,7 +107,7 @@ describe('parseWineLog', () => {
       callsite: '6fffffc88542',
     },
     {
-      index: 6,
+      id: 6,
       process: process00c8,
       thread: thread00cc,
       type: LogEntryType.RETURN,
@@ -177,7 +177,7 @@ describe('parseWineLog', () => {
       expect(result.processes).toEqual(processes)
       expect(result.entries).toEqual([
         {
-          index: 0,
+          id: 0,
           process: process00c8,
           thread: thread00cc,
           channel: 'locale',
@@ -221,7 +221,7 @@ describe('parseWineLog', () => {
       expect(result.processes).toEqual(processes)
       expect(result.entries).toEqual([
         {
-          index: 0,
+          id: 0,
           process: process00aa,
           thread: thread00aa,
           channel: 'module',
@@ -230,7 +230,7 @@ describe('parseWineLog', () => {
           message: 'looking for L"C:\\\\path\\\\to\\\\process.exe"',
         },
         {
-          index: 1,
+          id: 1,
           process: process00aa,
           thread: thread00aa,
           channel: 'module',
@@ -239,7 +239,7 @@ describe('parseWineLog', () => {
           message: 'looking for L"C:\\\\windows\\\\system32\\\\kernel32.dll"',
         },
         {
-          index: 2,
+          id: 2,
           process: process00aa,
           thread: thread00aa,
           channel: 'threadname',
@@ -248,7 +248,7 @@ describe('parseWineLog', () => {
           message: 'Thread renamed to L"initial thread name"',
         },
         {
-          index: 3,
+          id: 3,
           process: process00aa,
           thread: thread00aa,
           channel: 'threadname',

@@ -104,7 +104,7 @@ async function parseWineLog(
   const cache = []
 
   let line: string = ''
-  let index = 0
+  let id = 0
   let previous: LogEntry | undefined
   while (true) {
     if (mode === ParserMode.BACKFILL_FROM_CACHE) {
@@ -162,7 +162,7 @@ async function parseWineLog(
     const call = calls[pid][tid]
 
     let entry: LogEntry
-    const common = { index, process, thread }
+    const common = { id, process, thread }
 
     switch (type) {
       case LogEntryType.CALL:
@@ -214,7 +214,7 @@ async function parseWineLog(
         }
         break
       default:
-        const [cls, channel, logger] = type.split(':')
+        const [cls, channel = '', logger = ''] = type.split(':')
 
         entry = { ...common, channel, class: cls, logger, message }
 
@@ -241,7 +241,7 @@ async function parseWineLog(
 
     entries.push(entry)
     previous = entry
-    ++index
+    ++id
   }
 
   return {
