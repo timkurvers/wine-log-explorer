@@ -19,9 +19,7 @@ interface ErrorPayload {
 }
 
 export type WorkerInputMessageEvent = MessageEvent<File>
-export type WorkerOutputMessageEvent = MessageEvent<
-  ProgressPayload | CompletePayload | ErrorPayload
->
+export type WorkerOutputMessageEvent = MessageEvent<ProgressPayload | CompletePayload | ErrorPayload>
 
 // Worker receives a Wine log file to parse
 self.addEventListener('message', async (message: WorkerInputMessageEvent) => {

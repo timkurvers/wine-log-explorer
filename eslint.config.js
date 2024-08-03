@@ -8,10 +8,7 @@ import pluginReact from 'eslint-plugin-react'
 import tseslint from 'typescript-eslint'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
-const gitignores = fs
-  .readFileSync(path.join(dirname, '.gitignore'), 'utf8')
-  .split('\n')
-  .filter(Boolean)
+const gitignores = fs.readFileSync(path.join(dirname, '.gitignore'), 'utf8').split('\n').filter(Boolean)
 
 export default [
   {

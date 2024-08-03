@@ -3,13 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { stripIndent } from '../utils/index'
 
 import parseWineLog from './parseWineLog'
-import {
-  type LogProcess,
-  type LogEntry,
-  LogEntryType,
-  type LogEntryCall,
-  type LogEntryReturn,
-} from './types'
+import { type LogProcess, type LogEntry, LogEntryType, type LogEntryCall, type LogEntryReturn } from './types'
 
 describe('parseWineLog', () => {
   const input = stripIndent`

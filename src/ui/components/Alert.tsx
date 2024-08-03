@@ -25,12 +25,7 @@ const Alert = (props: AlertProps) => {
   } = props
 
   const openissue = (
-    <Anchor
-      c={c}
-      fw="bold"
-      href="https://github.com/timkurvers/wine-log-explorer/issues"
-      target="_blank"
-    >
+    <Anchor c={c} fw="bold" href="https://github.com/timkurvers/wine-log-explorer/issues" target="_blank">
       open an issue
     </Anchor>
   )
@@ -69,12 +64,7 @@ const Alert = (props: AlertProps) => {
   )
 
   const timestamps = (
-    <Anchor
-      c={c}
-      fw="bold"
-      href="https://github.com/timkurvers/wine-log-explorer/issues/1"
-      target="_blank"
-    >
+    <Anchor c={c} fw="bold" href="https://github.com/timkurvers/wine-log-explorer/issues/1" target="_blank">
       officially supported
     </Anchor>
   )
@@ -93,8 +83,8 @@ const Alert = (props: AlertProps) => {
         {showLimitations && (
           <>
             <Text mt="md">
-              Currently, log files must be generated with <em>at least</em> <Code>+pid</Code>. Logs
-              with <Code>+timestamp</Code> may load correctly, but are not (yet) {timestamps}.
+              Currently, log files must be generated with <em>at least</em> <Code>+pid</Code>. Logs with{' '}
+              <Code>+timestamp</Code> may load correctly, but are not (yet) {timestamps}.
             </Text>
             <Text mt="md">
               Instructions on how to generate logs for {wine}, {cxmac} and {cxlinux}.
@@ -103,9 +93,7 @@ const Alert = (props: AlertProps) => {
         )}
 
         {encourageBugReport && (
-          <Text mt="md">
-            If you believe this to be a bug in Wine Log Explorer, please {openissue}.
-          </Text>
+          <Text mt="md">If you believe this to be a bug in Wine Log Explorer, please {openissue}.</Text>
         )}
 
         {details}
