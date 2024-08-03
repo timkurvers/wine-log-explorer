@@ -1,11 +1,17 @@
-import React, { useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 
-import { Group, MultiSelect, Stack, Text } from '@mantine/core'
+import { ActionIcon, Group, MultiSelect, Stack, Text, TextInput, Tooltip } from '@mantine/core'
 import { AutoSizer, List } from 'react-virtualized'
-import { IconAlertTriangleFilled } from '@tabler/icons-react'
+import {
+  IconAlertTriangleFilled,
+  IconArrowNarrowDown,
+  IconArrowNarrowUp,
+  IconSearch,
+} from '@tabler/icons-react'
 
 import Alert from '../components/Alert'
 import { LogEntryType, type LogParseResult } from '../../parser/types'
+import { findNextIndexMatching, findPrevIndexMatching } from '../../utils/search'
 
 import LogRow from './LogRow'
 
@@ -20,32 +26,83 @@ const Log = (props: LogProps) => {
   const [selectedProcessIds, setSelectedProcessIds] = useState<string[]>([])
   const [selectedThreadIds, setSelectedThreadIds] = useState<string[]>([])
 
+  // Searching
+  const [searchText, setSearchText] = useState('')
+  const [searchIndex, setSearchIndex] = useState<number>()
+
   const { processes, entries } = result
 
-  const filteredProcesses = selectedProcessIds.length
-    ? processes.filter((process) => selectedProcessIds.includes(process.id))
-    : processes
+  const filteredProcesses = useMemo(
+    () =>
+      selectedProcessIds.length
+        ? processes.filter((process) => selectedProcessIds.includes(process.id))
+        : processes,
+    [processes, selectedProcessIds],
+  )
 
-  const filteredThreadIds = selectedThreadIds.length
-    ? selectedThreadIds
-    : filteredProcesses.flatMap((process) => process.threads.map((thread) => thread.id))
+  const filteredThreadIds = useMemo(
+    () =>
+      selectedThreadIds.length
+        ? selectedThreadIds
+        : filteredProcesses.flatMap((process) => process.threads.map((thread) => thread.id)),
+    [selectedThreadIds, filteredProcesses],
+  )
 
-  const filtered = entries.filter((entry) => {
-    // Remove inlinable entries from log
-    if (entry.type === LogEntryType.RETURN && entry.parent?.inlinable) {
-      return false
-    }
+  const filtered = useMemo(
+    () =>
+      entries.filter((entry) => {
+        // Remove inlinable entries from log
+        if (entry.type === LogEntryType.RETURN && entry.parent?.inlinable) {
+          return false
+        }
 
-    if (!filteredProcesses.some((process) => process.id === entry.process.id)) {
-      return false
-    }
+        if (!filteredProcesses.some((process) => process.id === entry.process.id)) {
+          return false
+        }
 
-    if (!filteredThreadIds.includes(entry.thread.id)) {
-      return false
-    }
+        if (!filteredThreadIds.includes(entry.thread.id)) {
+          return false
+        }
 
-    return true
-  })
+        return true
+      }),
+    [entries, filteredProcesses, filteredThreadIds],
+  )
+
+  const onChangeSearchText = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchText(e.currentTarget.value)
+    },
+    [setSearchText],
+  )
+
+  const onSearchNextMatch = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault()
+
+      const index = findNextIndexMatching(
+        filtered,
+        searchText,
+        searchIndex !== undefined ? searchIndex + 1 : undefined,
+      )
+      setSearchIndex(index)
+    },
+    [filtered, searchText, searchIndex],
+  )
+
+  const onSearchPrevMatch = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault()
+
+      const index = findPrevIndexMatching(
+        filtered,
+        searchText,
+        searchIndex !== undefined ? searchIndex - 1 : undefined,
+      )
+      setSearchIndex(index)
+    },
+    [filtered, searchText, searchIndex],
+  )
 
   if (!entries.length) {
     return (
@@ -82,6 +139,29 @@ const Log = (props: LogProps) => {
           onChange={setSelectedThreadIds}
           placeholder="Threads"
         />
+
+        <form onSubmit={onSearchNextMatch} style={{ flex: 1 }}>
+          <TextInput
+            leftSection={<IconSearch size={16} />}
+            onChange={onChangeSearchText}
+            placeholder="Search"
+            rightSection={
+              <ActionIcon.Group mr="100%">
+                <ActionIcon onClick={onSearchPrevMatch} disabled={!searchText} variant="default">
+                  <Tooltip label="Prev Match" offset={10} withArrow>
+                    <IconArrowNarrowUp size={16} stroke={1.5} />
+                  </Tooltip>
+                </ActionIcon>
+
+                <ActionIcon onClick={onSearchNextMatch} disabled={!searchText} variant="default">
+                  <Tooltip label="Next Match" offset={10} withArrow>
+                    <IconArrowNarrowDown size={16} stroke={1.5} />
+                  </Tooltip>
+                </ActionIcon>
+              </ActionIcon.Group>
+            }
+          />
+        </form>
       </Group>
 
       <Stack flex={1}>
@@ -94,8 +174,15 @@ const Log = (props: LogProps) => {
               rowCount={filtered.length}
               rowHeight={24}
               rowRenderer={({ key, style, index }) => (
-                <LogRow key={key} style={style} entry={filtered[index]} />
+                <LogRow
+                  isCurrentSearchIndex={index === searchIndex}
+                  entry={filtered[index]}
+                  key={key}
+                  searchText={searchText}
+                  style={style}
+                />
               )}
+              scrollToIndex={searchIndex}
             />
           )}
         </AutoSizer>

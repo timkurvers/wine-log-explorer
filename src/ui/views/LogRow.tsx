@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 
-import { Badge, Group, Text } from '@mantine/core'
+import { Badge, Group, Highlight, Text } from '@mantine/core'
 
 import { type LogEntry, LogEntryType } from '../../parser/types'
 
@@ -9,26 +9,35 @@ import BoxCharacter from '../components/BoxCharacter'
 import SyntaxCharacter from '../components/SyntaxCharacter'
 
 interface LogRowProps {
-  style?: object
   entry: LogEntry
+  isCurrentSearchIndex: boolean
+  searchText: string
+  style?: object
 }
 
 // TODO: Use classes
 const textSize = 14
 
 const LogRowInner = (props: LogRowProps) => {
-  const { entry } = props
+  const { entry, isCurrentSearchIndex, searchText } = props
+
+  const highlightProps = {
+    color: isCurrentSearchIndex ? 'orange' : 'yellow',
+    highlight: searchText,
+    span: true,
+    inherit: true,
+  }
 
   if (entry.type === LogEntryType.CALL) {
     const line = (
       <>
-        {entry.module}
+        <Highlight {...highlightProps}>{entry.module}</Highlight>
         <SyntaxCharacter>.</SyntaxCharacter>
-        <Text fw="bold" span inherit>
+        <Highlight fw="bold" {...highlightProps}>
           {entry.func}
-        </Text>
+        </Highlight>
         <SyntaxCharacter>(</SyntaxCharacter>
-        {entry.args?.join(', ')}
+        <Highlight {...highlightProps}>{entry.args?.join(', ') || ''}</Highlight>
         <SyntaxCharacter>)</SyntaxCharacter>
       </>
     )
@@ -36,7 +45,7 @@ const LogRowInner = (props: LogRowProps) => {
     if (entry.inlinable) {
       return (
         <Text fz={textSize}>
-          {line} <Arrow /> {entry.return?.retval}
+          {line} <Arrow /> <Highlight {...highlightProps}>{entry.return?.retval || '?'}</Highlight>
         </Text>
       )
     }
@@ -47,7 +56,7 @@ const LogRowInner = (props: LogRowProps) => {
       <Group gap={0}>
         <BoxCharacter.End />
         <Text fz={textSize}>
-          <Arrow /> {entry.retval}
+          <Arrow /> <Highlight {...highlightProps}>{entry.retval}</Highlight>
         </Text>
       </Group>
     )
@@ -56,17 +65,19 @@ const LogRowInner = (props: LogRowProps) => {
   return (
     <>
       <Badge variant="transparent" color="green" p={0}>
-        {entry.channel}
+        <Highlight {...highlightProps}>{entry.channel}</Highlight>
         <SyntaxCharacter>:</SyntaxCharacter>
-        {entry.logger}
+        <Highlight {...highlightProps}>{entry.logger}</Highlight>
       </Badge>
-      <Text fz={textSize}>{entry.message}</Text>
+      <Highlight fz={textSize} {...highlightProps}>
+        {entry.message}
+      </Highlight>
     </>
   )
 }
 
 const LogRow = (props: LogRowProps) => {
-  const { style, entry } = props
+  const { entry, style } = props
 
   const indent = useMemo(() => {
     let level = 0
@@ -97,7 +108,7 @@ const LogRow = (props: LogRowProps) => {
           <BoxCharacter.Pipe key={index} />
         ))}
 
-        <LogRowInner entry={entry} />
+        <LogRowInner {...props} />
       </Group>
     </Group>
   )
