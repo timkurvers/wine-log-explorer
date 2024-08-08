@@ -1,5 +1,6 @@
 export type pid = string
 export type tid = string
+export type eid = number
 export type msgclass = string
 export type channel = string
 export type logger = string
@@ -24,7 +25,7 @@ export enum LogEntryType {
 }
 
 interface LogEntryCommon {
-  id: number
+  id: eid
   process: LogProcess
   thread: LogThread
   parent?: LogEntryCall
@@ -50,6 +51,7 @@ export type LogEntryCall = LogEntryCommon &
     args?: string[]
     return?: LogEntryReturn
     inlinable?: boolean
+    isExpanded?: boolean
   }
 
 export type LogEntryReturn = LogEntryCommon &
