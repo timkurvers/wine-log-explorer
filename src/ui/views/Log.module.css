@@ -1,8 +1,0 @@
-/* Ensure the virtualized list is horizontally scrollable when long entries are present */
-.list {
-  overflow: auto !important;
-
-  :global .ReactVirtualized__Grid__innerScrollContainer {
-    overflow: initial !important;
-  }
-}

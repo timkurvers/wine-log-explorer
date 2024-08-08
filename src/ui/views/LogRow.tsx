@@ -3,9 +3,11 @@ import React, { useMemo } from 'react'
 import { Badge, Group, Highlight, Text } from '@mantine/core'
 
 import { type LogEntry, LogEntryType } from '../../parser/types'
+import { calculateDepth, isVisible } from '../../utils/tree'
 
 import Arrow from '../components/Arrow'
 import BoxCharacter from '../components/BoxCharacter'
+import ChevronCharacter from '../components/ChevronCharacter'
 import SyntaxCharacter from '../components/SyntaxCharacter'
 
 import classes from './LogRow.module.css'
@@ -15,10 +17,11 @@ interface LogRowProps {
   isCurrentSearchIndex: boolean
   searchText: string
   style?: object
+  toggleExpansion: () => void
 }
 
 const LogRowInner = (props: LogRowProps) => {
-  const { entry, isCurrentSearchIndex, searchText } = props
+  const { entry, isCurrentSearchIndex, searchText, toggleExpansion } = props
 
   const highlightProps = {
     color: isCurrentSearchIndex ? 'orange' : 'yellow',
@@ -30,6 +33,7 @@ const LogRowInner = (props: LogRowProps) => {
   if (entry.type === LogEntryType.CALL) {
     const line = (
       <>
+        {!entry.inlinable && <ChevronCharacter expanded={!!entry.isExpanded} onClick={toggleExpansion} />}
         <Highlight {...highlightProps}>{entry.module}</Highlight>
         <SyntaxCharacter>.</SyntaxCharacter>
         <Highlight fw="bold" {...highlightProps}>
@@ -41,7 +45,7 @@ const LogRowInner = (props: LogRowProps) => {
       </>
     )
 
-    if (entry.inlinable) {
+    if (entry.inlinable || !entry.isExpanded) {
       return (
         <Text className={classes.text}>
           {line} <Arrow /> <Highlight {...highlightProps}>{entry.return?.retval || '?'}</Highlight>
@@ -78,21 +82,12 @@ const LogRowInner = (props: LogRowProps) => {
 const LogRow = (props: LogRowProps) => {
   const { entry, style } = props
 
-  const indent = useMemo(() => {
-    let level = 0
-    let current = entry.parent
-    while (current) {
-      current = current?.parent
-      ++level
-    }
+  const indent = useMemo(() => calculateDepth(entry), [entry])
 
-    // Show return values at the same level as the initial call
-    if (entry.type === LogEntryType.RETURN) {
-      return level - 1
-    }
-
-    return level
-  }, [entry])
+  // Virtualized list may attempt to render a zero-height row when an entry is hidden, so bail out early
+  if (!isVisible(entry)) {
+    return null
+  }
 
   return (
     // Ensure long entries are allowed to expand beyond 100% width
