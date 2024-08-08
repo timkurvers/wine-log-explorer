@@ -1,0 +1,10 @@
+.chevron {
+  padding-left: 0.5em;
+  padding-right: 0.8em;
+  cursor: pointer;
+  opacity: 0.8;
+
+  &:hover {
+    opacity: 1;
+  }
+}
