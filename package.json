@@ -18,6 +18,8 @@
   ],
   "scripts": {
     "build": "tsc && vite build",
+    "build:clean": "rm -rf dist/*",
+    "build:publish": "git subtree push --prefix dist origin gh-pages",
     "lint": "eslint .",
     "parse:dev": "./bin/parse.ts",
     "start:dev": "vite",
