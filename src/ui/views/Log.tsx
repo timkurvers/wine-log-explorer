@@ -41,6 +41,7 @@ const Log = (props: LogProps) => {
   // Searching
   const [searchText, setSearchText] = useState('')
   const [searchIndex, setSearchIndex] = useState<number>()
+  const [searchNotFound, setSearchNotFound] = useState(false)
   const [visibleSearchIndex, setVisibleSearchIndex] = useState<number>()
 
   // Reference to virtualized list to facilitate for tree expansion and scrolling to entries
@@ -93,6 +94,7 @@ const Log = (props: LogProps) => {
   const onChangeSearchText = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setSearchText(e.currentTarget.value)
+      setSearchNotFound(false)
     },
     [setSearchText],
   )
@@ -107,6 +109,9 @@ const Log = (props: LogProps) => {
         searchIndex !== undefined ? searchIndex + 1 : undefined,
       )
       setSearchIndex(index)
+      if (index === undefined) {
+        setSearchNotFound(true)
+      }
     },
     [entries, searchText, searchIndex],
   )
@@ -121,6 +126,9 @@ const Log = (props: LogProps) => {
         searchIndex !== undefined ? searchIndex - 1 : undefined,
       )
       setSearchIndex(index)
+      if (index === undefined) {
+        setSearchNotFound(true)
+      }
     },
     [entries, searchText, searchIndex],
   )
@@ -233,6 +241,7 @@ const Log = (props: LogProps) => {
 
         <form onSubmit={onSearchNextMatch} style={{ flex: 1 }}>
           <TextInput
+            error={searchNotFound}
             leftSection={<IconSearch size={16} />}
             onChange={onChangeSearchText}
             placeholder="Search"
