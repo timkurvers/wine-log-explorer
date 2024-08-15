@@ -213,6 +213,7 @@ const Log = (props: LogProps) => {
           flex={1}
           onChange={setSelectedProcessIds}
           placeholder="Processes"
+          searchable
         />
 
         <MultiSelect
@@ -227,6 +228,7 @@ const Log = (props: LogProps) => {
           flex={1}
           onChange={setSelectedThreadIds}
           placeholder="Threads"
+          searchable
         />
 
         <form onSubmit={onSearchNextMatch} style={{ flex: 1 }}>
