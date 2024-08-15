@@ -218,7 +218,7 @@ const Log = (props: LogProps) => {
         <MultiSelect
           clearable
           data={filteredProcesses.map((process) => ({
-            group: `${process.name} (${process.id})`,
+            group: process.name ? `${process.name} (${process.id})` : process.id,
             items: process.threads.map((thread) => ({
               value: thread.id,
               label: thread.name || thread.id,
