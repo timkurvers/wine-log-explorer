@@ -6,6 +6,8 @@ Explorer for Wine and CrossOver debug logs.
 
 View live: https://timkurvers.github.io/wine-log-explorer
 
+![Wine Log Explorer](./public/images/wine-log-explorer.png)
+
 # Background
 
 > [!NOTE]
