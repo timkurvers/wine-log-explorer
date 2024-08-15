@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import AutoSizer from 'react-virtualized-auto-sizer'
 import { ActionIcon, Group, MultiSelect, Stack, Text, TextInput, Tooltip } from '@mantine/core'
-import { type ListChildComponentProps, VariableSizeList as List } from 'react-window'
+import { FixedSizeList as List, type ListChildComponentProps } from 'react-window'
 import {
   IconAlertTriangleFilled,
   IconArrowNarrowDown,
@@ -13,9 +13,16 @@ import {
 } from '@tabler/icons-react'
 
 import Alert from '../components/Alert'
-import { LogEntryCall, LogEntryType, type LogParseResult, type pid, type tid } from '../../parser/types'
+import {
+  LogEntry,
+  type LogEntryCall,
+  LogEntryType,
+  type LogParseResult,
+  type pid,
+  type tid,
+} from '../../parser/types'
 import { findNextIndexMatching, findPrevIndexMatching } from '../../utils/search'
-import { isVisible } from '../../utils/tree'
+import { compactTree, compactTreeForCall } from '../../utils/tree'
 
 import LogRow from './LogRow'
 
@@ -25,6 +32,7 @@ interface LogProps {
 
 const Log = (props: LogProps) => {
   const { result } = props
+  const { processes, entries } = result
 
   // Filtering
   const [selectedProcessIds, setSelectedProcessIds] = useState<pid[]>([])
@@ -33,11 +41,10 @@ const Log = (props: LogProps) => {
   // Searching
   const [searchText, setSearchText] = useState('')
   const [searchIndex, setSearchIndex] = useState<number>()
+  const [visibleSearchIndex, setVisibleSearchIndex] = useState<number>()
 
   // Reference to virtualized list to facilitate for tree expansion and scrolling to entries
   const listRef = useRef<List>(null)
-
-  const { processes, entries } = result
 
   const filteredProcesses = useMemo(
     () =>
@@ -55,26 +62,33 @@ const Log = (props: LogProps) => {
     [selectedThreadIds, filteredProcesses],
   )
 
-  const filtered = useMemo(
-    () =>
-      entries.filter((entry) => {
-        // Remove inlinable entries from log
-        if (entry.type === LogEntryType.RETURN && entry.parent?.inlinable) {
-          return false
-        }
+  const activeFilter = useCallback(
+    (entry: LogEntry) => {
+      // Remove inlinable entries from log
+      if (entry.type === LogEntryType.RETURN && entry.parent?.inlinable) {
+        return false
+      }
 
-        if (!filteredProcesses.some((process) => process.id === entry.process.id)) {
-          return false
-        }
+      if (!filteredProcesses.some((process) => process.id === entry.process.id)) {
+        return false
+      }
 
-        if (!filteredThreadIds.includes(entry.thread.id)) {
-          return false
-        }
+      if (!filteredThreadIds.includes(entry.thread.id)) {
+        return false
+      }
 
-        return true
-      }),
-    [entries, filteredProcesses, filteredThreadIds],
+      return true
+    },
+    [filteredProcesses, filteredThreadIds],
   )
+
+  // Visible entries matching active filter and part of expanded call trees
+  const [visible, setVisibleEntries] = useState<LogEntry[]>([])
+
+  // Applies the initial filtering on mount, too
+  useEffect(() => {
+    setVisibleEntries(compactTree(entries, activeFilter))
+  }, [filteredProcesses, filteredThreadIds])
 
   const onChangeSearchText = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,13 +102,13 @@ const Log = (props: LogProps) => {
       e.preventDefault()
 
       const index = findNextIndexMatching(
-        filtered,
+        entries,
         searchText,
         searchIndex !== undefined ? searchIndex + 1 : undefined,
       )
       setSearchIndex(index)
     },
-    [filtered, searchText, searchIndex],
+    [entries, searchText, searchIndex],
   )
 
   const onSearchPrevMatch = useCallback(
@@ -102,18 +116,18 @@ const Log = (props: LogProps) => {
       e.preventDefault()
 
       const index = findPrevIndexMatching(
-        filtered,
+        entries,
         searchText,
         searchIndex !== undefined ? searchIndex - 1 : undefined,
       )
       setSearchIndex(index)
     },
-    [filtered, searchText, searchIndex],
+    [entries, searchText, searchIndex],
   )
 
   const onToggleExpansion = useCallback(
     (index: number) => {
-      const entry = filtered[index]
+      const entry = visible[index]
       if (entry.type !== LogEntryType.CALL) {
         return
       }
@@ -122,41 +136,52 @@ const Log = (props: LogProps) => {
       entry.isExpanded = !entry.isExpanded
 
       // Ensure room is made for / taken from the sub entries of this call entry
-      listRef.current?.resetAfterIndex(index)
+      const next = compactTreeForCall(visible, entries, entry, activeFilter)
+      setVisibleEntries(next)
     },
-    [filtered],
+    [activeFilter, entries, visible],
   )
 
   useEffect(() => {
     if (searchIndex === undefined) return
 
-    const entry = filtered[searchIndex]
-    if (!entry) return
+    const entry = entries[searchIndex]
 
-    // Ensure the entire ancestor hierarchy is expanded and re-rendered when necessary
-    let current = entry.parent
-    let ancestorToExpand: LogEntryCall | null = null
-    while (current) {
-      if (!current.isExpanded) {
-        current.isExpanded = true
-        ancestorToExpand = current
+    let next = visible
+    let visibleSearchIndex = visible.indexOf(entry)
+
+    // Ensure the entire ancestor hierarchy is expanded when search entry is not yet visible
+    if (visibleSearchIndex === -1) {
+      let current = entry.parent
+      let ancestorToExpand: LogEntryCall | null = null
+      while (current) {
+        if (!current.isExpanded) {
+          current.isExpanded = true
+          ancestorToExpand = current
+        }
+        current = current.parent
       }
-      current = current.parent
-    }
-    if (ancestorToExpand) {
-      listRef.current?.resetAfterIndex(filtered.indexOf(ancestorToExpand))
+
+      if (ancestorToExpand) {
+        next = compactTreeForCall(visible, entries, ancestorToExpand, activeFilter)
+      }
+      visibleSearchIndex = next.indexOf(entry)
     }
 
-    // Scroll to search index
-    listRef.current?.scrollToItem(searchIndex, 'center')
-  }, [searchIndex])
+    if (visibleSearchIndex !== -1) {
+      setVisibleEntries(next)
+      setVisibleSearchIndex(visibleSearchIndex)
+    }
+  }, [entries, searchIndex])
 
   useEffect(() => {
-    // When the the list of entries is filtered anew, react-window breaks, so re-render the virtualized list
-    listRef.current?.resetAfterIndex(0)
-  }, [filtered])
+    if (visibleSearchIndex === undefined) return
 
-  if (!entries.length) {
+    // Scroll to search index
+    listRef.current?.scrollToItem(visibleSearchIndex, 'center')
+  }, [visibleSearchIndex])
+
+  if (!result.entries.length) {
     return (
       <Alert c="yellow" encourageBugReport icon={<IconAlertTriangleFilled />} showLimitations>
         <Text>This file does not seem to be a Wine log file.</Text>
@@ -167,14 +192,14 @@ const Log = (props: LogProps) => {
   const createLogRow = useMemo(() => {
     return ({ index, style }: ListChildComponentProps) => (
       <LogRow
-        isCurrentSearchIndex={index === searchIndex}
-        entry={filtered[index]}
+        isCurrentSearchIndex={index === visibleSearchIndex}
+        entry={visible[index]}
         searchText={searchText}
         style={style}
         toggleExpansion={() => onToggleExpansion(index)}
       />
     )
-  }, [filtered, searchText, searchIndex])
+  }, [searchText, visible, visibleSearchIndex])
 
   return (
     <Stack flex={1}>
@@ -234,12 +259,10 @@ const Log = (props: LogProps) => {
             <List
               width={width}
               height={height}
-              estimatedItemSize={24}
               overscanCount={15}
               ref={listRef}
-              itemCount={filtered.length}
-              itemKey={(index) => `${filtered[index].id}-${index}`}
-              itemSize={(index) => (isVisible(filtered[index]) ? 24 : 0)}
+              itemCount={visible.length}
+              itemSize={24}
             >
               {createLogRow}
             </List>

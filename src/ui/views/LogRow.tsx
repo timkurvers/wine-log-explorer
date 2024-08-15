@@ -3,7 +3,7 @@ import React, { useMemo } from 'react'
 import { Badge, Group, Highlight, Text } from '@mantine/core'
 
 import { type LogEntry, LogEntryType } from '../../parser/types'
-import { calculateDepth, isVisible } from '../../utils/tree'
+import { calculateDepth } from '../../utils/tree'
 
 import Arrow from '../components/Arrow'
 import BoxCharacter from '../components/BoxCharacter'
@@ -83,11 +83,6 @@ const LogRow = (props: LogRowProps) => {
   const { entry, style } = props
 
   const indent = useMemo(() => calculateDepth(entry), [entry])
-
-  // Virtualized list may attempt to render a zero-height row when an entry is hidden, so bail out early
-  if (!isVisible(entry)) {
-    return null
-  }
 
   return (
     // Ensure long entries are allowed to expand beyond 100% width
