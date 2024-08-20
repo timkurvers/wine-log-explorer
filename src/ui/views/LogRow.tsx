@@ -59,7 +59,12 @@ const LogRowInner = (props: LogRowProps) => {
       <Group gap={0} wrap="nowrap">
         <BoxCharacter.End />
         <Text className={classes.text}>
-          <Arrow /> <Highlight {...highlightProps}>{entry.retval}</Highlight>
+          <Arrow /> <Highlight {...highlightProps}>{entry.retval}</Highlight>{' '}
+          <Text c="dimmed" opacity={0.5} span inherit>
+            [<Highlight {...highlightProps}>{entry.module}</Highlight>
+            <SyntaxCharacter>.</SyntaxCharacter>
+            <Highlight {...highlightProps}>{entry.func}</Highlight>]
+          </Text>
         </Text>
       </Group>
     )
