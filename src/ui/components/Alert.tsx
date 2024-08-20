@@ -63,6 +63,17 @@ const Alert = (props: AlertProps) => {
     </Anchor>
   )
 
+  const proton = (
+    <Anchor
+      c={c}
+      fw="bold"
+      href="https://github.com/ValveSoftware/Proton/wiki/Proton-FAQ#how-to-enable-proton-logs"
+      target="_blank"
+    >
+      Proton
+    </Anchor>
+  )
+
   return (
     <Box p="md">
       <Blockquote variant="light" color={c} icon={icon}>
@@ -80,7 +91,7 @@ const Alert = (props: AlertProps) => {
               Currently, log files must be generated with <em>at least</em> <Code>+pid</Code>.
             </Text>
             <Text mt="md">
-              Instructions on how to generate logs for {wine}, {cxmac} and {cxlinux}.
+              Instructions on how to generate logs for {wine}, {cxmac}, {cxlinux} and {proton}.
             </Text>
           </>
         )}
