@@ -99,6 +99,7 @@ async function parseWineLog(
   const processes: Record<pid, LogProcess> = {}
   const threads: Record<pid, Record<tid, LogThread>> = {}
   const calls: Record<pid, Record<tid, LogEntryCall | undefined>> = {}
+  const previous: Record<pid, Record<tid, LogEntry | undefined>> = {}
 
   const lines = streamLinesFrom(rstream, {
     onReadProgress: options?.onReadProgress,
@@ -111,7 +112,6 @@ async function parseWineLog(
   let line: string = ''
   let id = 0
   let startTimestamp
-  let previous: LogEntry | undefined
   while (true) {
     if (mode === ParserMode.BACKFILL_FROM_CACHE) {
       if (cache.length) {
@@ -170,6 +170,7 @@ async function parseWineLog(
       processes[pid] = process
       threads[pid] = {}
       calls[pid] = {}
+      previous[pid] = {}
     }
 
     let thread = threads[pid][tid]
@@ -233,7 +234,7 @@ async function parseWineLog(
             call.return = entry
 
             // Mark as inlinable when a Call-entry is immediately followed by its corresponding Ret-entry
-            if (previous === call) {
+            if (previous[pid][tid] === call) {
               call.inlinable = true
             }
           }
@@ -268,7 +269,7 @@ async function parseWineLog(
     }
 
     entries.push(entry)
-    previous = entry
+    previous[pid][tid] = entry
     ++id
   }
 

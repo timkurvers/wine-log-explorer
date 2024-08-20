@@ -19,6 +19,7 @@ describe('parseWineLog', () => {
     00c8:00cc:Call KERNEL32.CreateToolhelp32Snapshot(00000002,00000000 L"Random String with )") ret=140001656
     00c8:00cc:fixme:thread:get_thread_times not implemented on this platform
     00c8:00cc:Call ntdll.RtlRunOnceExecuteOnce(6fffffcc4780,6fffffc8b790,00000000,00000000) ret=6fffffc88542
+    00c8:00ff:fixme:thread:inline_disruptor this should not interfere with inlinability (different thread)
     00c8:00cc:Ret  ntdll.RtlRunOnceExecuteOnce() retval=00000000 ret=6fffffc88542
     00c8:00cc:Ret  KERNEL32.CreateToolhelp32Snapshot() retval=00000050 ret=140001656
   `
@@ -32,12 +33,16 @@ describe('parseWineLog', () => {
           id: '00cc',
           name: null,
         },
+        {
+          id: '00ff',
+          name: null,
+        },
       ],
     },
   ]
 
-  const process00c8 = processes[0]
-  const thread00cc = process00c8.threads[0]
+  const [process00c8] = processes
+  const [thread00cc, thread00ff] = process00c8.threads
 
   const entries: LogEntry[] = [
     {
@@ -93,6 +98,15 @@ describe('parseWineLog', () => {
     {
       id: 5,
       process: process00c8,
+      thread: thread00ff,
+      class: 'fixme',
+      channel: 'thread',
+      logger: 'inline_disruptor',
+      message: 'this should not interfere with inlinability (different thread)',
+    },
+    {
+      id: 6,
+      process: process00c8,
       thread: thread00cc,
       type: LogEntryType.RETURN,
       module: 'ntdll',
@@ -101,7 +115,7 @@ describe('parseWineLog', () => {
       callsite: '6fffffc88542',
     },
     {
-      id: 6,
+      id: 7,
       process: process00c8,
       thread: thread00cc,
       type: LogEntryType.RETURN,
@@ -116,8 +130,8 @@ describe('parseWineLog', () => {
   const kernelSnapshotCall = entries[2] as LogEntryCall
   const __threadTimes = entries[3]
   const __ntdllExecCall = entries[4] as LogEntryCall
-  const ____ntdllExecRet = entries[5] as LogEntryReturn
-  const __kernelSnapshotRet = entries[6] as LogEntryReturn
+  const ____ntdllExecRet = entries[6] as LogEntryReturn
+  const __kernelSnapshotRet = entries[7] as LogEntryReturn
 
   __threadTimes.parent = kernelSnapshotCall
   __ntdllExecCall.parent = kernelSnapshotCall
@@ -147,6 +161,7 @@ describe('parseWineLog', () => {
       00cc:trace:module:map_image_into_view mapping PE file L"\\\\??\\\\C:\\\\winmemdump\\\\build\\\\winmemdump.exe" at 0x140000000-0x140a84000
       00c8:00cc:fix00c8:00cc:Call ntdll.RtlRunOnceExecuteOnce(6fffffcc4780,6fffffc8b790,00000000,00000000) ret=6fffffc88542
       me:thread:get_thread_times not implemented on this platform
+      00c8:00ff:fixme:thread:inline_disruptor this should not interfere with inlinability (different thread)
       00c8:00cc:Ret  ntdll.RtlRunOnceExecuteOnce() ret00c8:00cc:Ret  KERNEL32.CreateToolhelp32Snapshot() retval=00000050 ret=140001656
       val=00000000 ret=6fffffc88542
     `
@@ -172,7 +187,8 @@ describe('parseWineLog', () => {
       00cc:trace:module:map_image_into_view mapping PE file L"\\\\??\\\\C:\\\\winmemdump\\\\build\\\\winmemdump.exe" at 0x140000000-0x140a84000
       202122.787:00c8:00cc:fix202123.012:00c8:00cc:Call ntdll.RtlRunOnceExecuteOnce(6fffffcc4780,6fffffc8b790,00000000,00000000) ret=6fffffc88542
       me:thread:get_thread_times not implemented on this platform
-      202123.237:00c8:00cc:Ret  ntdll.RtlRunOnceExecuteOnce() ret202123.462:00c8:00cc:Ret  KERNEL32.CreateToolhelp32Snapshot() retval=00000050 ret=140001656
+      202123.237:00c8:00ff:fixme:thread:inline_disruptor this should not interfere with inlinability (different thread)
+      202123.462:00c8:00cc:Ret  ntdll.RtlRunOnceExecuteOnce() ret202123.687:00c8:00cc:Ret  KERNEL32.CreateToolhelp32Snapshot() retval=00000050 ret=140001656
       val=00000000 ret=6fffffc88542
     `
 
@@ -195,7 +211,8 @@ describe('parseWineLog', () => {
     it('preserves these in the parsed result', async () => {
       const fancy = stripIndent`
         ** Thu Jul 11 21:44:13 2024
-        00c8:00cc:trace:locale:print_fancy_chars (a Ā 𐀀 文 🦄)
+        00c8:00cc:trace:locale:print_fancy_chars (a Ā 𐀀)
+        00c8:00ff:trace:locale:print_fancy_chars (文 🦄)
       `
 
       const result = await parseWineLog(fancy)
@@ -209,7 +226,16 @@ describe('parseWineLog', () => {
           channel: 'locale',
           class: 'trace',
           logger: 'print_fancy_chars',
-          message: '(a Ā 𐀀 文 🦄)',
+          message: '(a Ā 𐀀)',
+        },
+        {
+          id: 1,
+          process: process00c8,
+          thread: thread00ff,
+          channel: 'locale',
+          class: 'trace',
+          logger: 'print_fancy_chars',
+          message: '(文 🦄)',
         },
       ])
     })
@@ -241,8 +267,8 @@ describe('parseWineLog', () => {
         },
       ]
 
-      const process00aa = processes[0]
-      const thread00aa = process00aa.threads[0]
+      const [process00aa] = processes
+      const [thread00aa] = process00aa.threads
 
       expect(result.processes).toEqual(processes)
       expect(result.entries).toEqual([
