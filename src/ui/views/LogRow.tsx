@@ -67,11 +67,13 @@ const LogRowInner = (props: LogRowProps) => {
 
   return (
     <>
-      <Badge variant="transparent" color="green" p={0} flex="none">
-        <Highlight {...highlightProps}>{entry.channel}</Highlight>
-        <SyntaxCharacter>:</SyntaxCharacter>
-        <Highlight {...highlightProps}>{entry.logger}</Highlight>
-      </Badge>
+      {(entry.channel || entry.logger) && (
+        <Badge variant="transparent" color="green" p={0} flex="none">
+          {entry.channel && <Highlight {...highlightProps}>{entry.channel}</Highlight>}
+          {entry.channel && entry.logger && <SyntaxCharacter>:</SyntaxCharacter>}
+          {entry.logger && <Highlight {...highlightProps}>{entry.logger}</Highlight>}
+        </Badge>
+      )}
       <Highlight className={classes.text} {...highlightProps}>
         {entry.message}
       </Highlight>
