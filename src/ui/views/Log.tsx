@@ -107,13 +107,14 @@ const Log = (props: LogProps) => {
         entries,
         searchText,
         searchIndex !== undefined ? searchIndex + 1 : undefined,
+        activeFilter,
       )
       setSearchIndex(index)
       if (index === undefined) {
         setSearchNotFound(true)
       }
     },
-    [entries, searchText, searchIndex],
+    [activeFilter, entries, searchText, searchIndex],
   )
 
   const onSearchPrevMatch = useCallback(
@@ -124,13 +125,14 @@ const Log = (props: LogProps) => {
         entries,
         searchText,
         searchIndex !== undefined ? searchIndex - 1 : undefined,
+        activeFilter,
       )
       setSearchIndex(index)
       if (index === undefined) {
         setSearchNotFound(true)
       }
     },
-    [entries, searchText, searchIndex],
+    [activeFilter, entries, searchText, searchIndex],
   )
 
   const onToggleExpansion = useCallback(
@@ -155,6 +157,7 @@ const Log = (props: LogProps) => {
 
     const entry = entries[searchIndex]
 
+    // TODO: Likely some race conditions here (depending on how fast the search is executed)
     let next = visible
     let visibleSearchIndex = visible.indexOf(entry)
 
