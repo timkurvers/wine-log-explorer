@@ -63,12 +63,6 @@ const Alert = (props: AlertProps) => {
     </Anchor>
   )
 
-  const timestamps = (
-    <Anchor c={c} fw="bold" href="https://github.com/timkurvers/wine-log-explorer/issues/1" target="_blank">
-      officially supported
-    </Anchor>
-  )
-
   return (
     <Box p="md">
       <Blockquote variant="light" color={c} icon={icon}>
