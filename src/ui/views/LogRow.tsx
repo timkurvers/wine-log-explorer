@@ -24,7 +24,7 @@ const LogRowInner = (props: LogRowProps) => {
   const { entry, isCurrentSearchIndex, searchText, toggleExpansion } = props
 
   const highlightProps = {
-    color: isCurrentSearchIndex ? 'orange' : 'yellow',
+    color: isCurrentSearchIndex ? 'yellow.7' : 'yellow.3',
     highlight: searchText,
     span: true,
     inherit: true,
