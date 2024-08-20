@@ -24,14 +24,15 @@ export enum LogEntryType {
   MESSAGE = 'Message',
 }
 
-interface LogEntryCommon {
+export interface LogEntryCommon {
   id: eid
   process: LogProcess
   thread: LogThread
   parent?: LogEntryCall
+  time?: number
 }
 
-interface LogEntryRelayCommon {
+export interface LogEntryRelayCommon {
   module: module
   func: string
   callsite: string

@@ -6,12 +6,16 @@ import {
   type LogThread,
   type LogEntry,
   type LogEntryCall,
+  type LogEntryCommon,
   LogEntryType,
   type pid,
   type tid,
 } from './types'
 
-const LINE_MATCHER = /(?<pid>[a-f0-9]{4}):(?<tid>[a-f0-9]{4}):(?<type>[a-zA-Z_:]+) +(?<message>.+)/
+const TIMESTAMP_START_MATCHER = /^\d+\.\d+:/
+
+const LINE_MATCHER =
+  /(?:(?<timestamp>\d+\.\d+):)?(?<pid>[a-f0-9]{4}):(?<tid>[a-f0-9]{4}):(?<type>[a-zA-Z_:]+) +(?<message>.+)/
 
 const CALL_RET_MATCHER =
   /(?:(?:(?<module>[\w]+)\.(?<func>[\w]+))|(?<unknown>.+))\((?<args>.+)?\)(?: retval=(?<retval>[a-f0-9]+))?(?: ret=(?<callsite>[a-f0-9]+))?/
@@ -101,10 +105,12 @@ async function parseWineLog(
   })
 
   let mode = ParserMode.NORMAL
+  let malformCheckOffset = 1
   const cache = []
 
   let line: string = ''
   let id = 0
+  let startTimestamp
   let previous: LogEntry | undefined
   while (true) {
     if (mode === ParserMode.BACKFILL_FROM_CACHE) {
@@ -123,10 +129,22 @@ async function parseWineLog(
       line = result.value
     }
 
-    const malformed = LINE_MATCHER.exec(line.slice(1)) as LineMatcherRegexResult
+    const malformed = LINE_MATCHER.exec(line.slice(malformCheckOffset)) as LineMatcherRegexResult
     if (malformed) {
+      if (malformCheckOffset === 1) {
+        const timestamp = TIMESTAMP_START_MATCHER.exec(line)
+        if (timestamp) {
+          malformCheckOffset = timestamp[0].length + 1
+          mode = ParserMode.BACKFILL_FROM_CACHE
+          cache.push(line)
+          continue
+        }
+      }
       mode = ParserMode.RECOVERY
-      cache.push(line.slice(0, malformed.index + 1), line.slice(malformed.index + 1))
+      cache.push(
+        line.slice(0, malformed.index + malformCheckOffset),
+        line.slice(malformed.index + malformCheckOffset),
+      )
       continue
     }
 
@@ -135,6 +153,8 @@ async function parseWineLog(
       if (mode === ParserMode.RECOVERY) {
         cache[0] += line
         mode = ParserMode.BACKFILL_FROM_CACHE
+      } else if (line) {
+        // TODO: Should these skipped / non-parsable lines be logged somewhere?
       }
       continue
     } else if (mode === ParserMode.RECOVERY) {
@@ -142,7 +162,7 @@ async function parseWineLog(
       continue
     }
 
-    const { pid, tid, type, message } = match.groups
+    const { pid, tid, type, message, timestamp } = match.groups
 
     let process = processes[pid]
     if (!process) {
@@ -162,7 +182,15 @@ async function parseWineLog(
     const call = calls[pid][tid]
 
     let entry: LogEntry
-    const common = { id, process, thread }
+    const common: LogEntryCommon = { id, process, thread }
+
+    if (timestamp) {
+      const time = (parseFloat(timestamp) * 1000) | 0
+      if (!startTimestamp) {
+        startTimestamp = time
+      }
+      common.time = time - startTimestamp
+    }
 
     switch (type) {
       case LogEntryType.CALL:

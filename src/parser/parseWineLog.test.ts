@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 
 import { stripIndent } from '../utils/index'
 
@@ -153,6 +153,38 @@ describe('parseWineLog', () => {
 
     it('reconstructs and parses given Wine log regardless', async () => {
       const result = await parseWineLog(malformed)
+
+      expect(result.processes).toEqual(processes)
+      expect(result.entries).toEqual(entries)
+    })
+  })
+
+  describe('when Wine log contains timestamps', () => {
+    const timestamped = stripIndent`
+      ** Thu Jul 11 21:44:13 2024
+      Starting 'bin/wineloader' 'lib/wine/x86_64-windows/winewrapper.exe' '--run' '--'
+      'C:\\winmemdump\\build\\winmemdump' 'nonexistent.exe'
+
+      wineserver: using server-side synchronization.
+
+      202122.112:00c8:202122.337:00c8:00cc:trace:module:map_image_into_view mapping PE file L"\\\\??\\\\C:\\\\windows\\\\system32\\\\ntdll.dll" at 0x6ffffff40000-0x6ffffffe6000
+      202122.562:00c8:00cc:Call KERNEL32.CreateToolhelp32Snapshot(00000002,00000000 L"Random String with )") ret=140001656
+      00cc:trace:module:map_image_into_view mapping PE file L"\\\\??\\\\C:\\\\winmemdump\\\\build\\\\winmemdump.exe" at 0x140000000-0x140a84000
+      202122.787:00c8:00cc:fix202123.012:00c8:00cc:Call ntdll.RtlRunOnceExecuteOnce(6fffffcc4780,6fffffc8b790,00000000,00000000) ret=6fffffc88542
+      me:thread:get_thread_times not implemented on this platform
+      202123.237:00c8:00cc:Ret  ntdll.RtlRunOnceExecuteOnce() ret202123.462:00c8:00cc:Ret  KERNEL32.CreateToolhelp32Snapshot() retval=00000050 ret=140001656
+      val=00000000 ret=6fffffc88542
+    `
+
+    beforeEach(() => {
+      for (const entry of entries) {
+        // Above input is constructed such that each entry is timestamped 225ms after the previous one
+        entry.time = entry.id * 225
+      }
+    })
+
+    it('exposes these timestamps in the parsed result', async () => {
+      const result = await parseWineLog(timestamped)
 
       expect(result.processes).toEqual(processes)
       expect(result.entries).toEqual(entries)

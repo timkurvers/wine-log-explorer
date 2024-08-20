@@ -83,8 +83,7 @@ const Alert = (props: AlertProps) => {
         {showLimitations && (
           <>
             <Text mt="md">
-              Currently, log files must be generated with <em>at least</em> <Code>+pid</Code>. Logs with{' '}
-              <Code>+timestamp</Code> may load correctly, but are not (yet) {timestamps}.
+              Currently, log files must be generated with <em>at least</em> <Code>+pid</Code>.
             </Text>
             <Text mt="md">
               Instructions on how to generate logs for {wine}, {cxmac} and {cxlinux}.
