@@ -179,6 +179,8 @@ const Log = (props: LogProps) => {
     if (visibleSearchIndex !== -1) {
       setVisibleEntries(next)
       setVisibleSearchIndex(visibleSearchIndex)
+    } else {
+      setVisibleSearchIndex(undefined)
     }
   }, [entries, searchIndex])
 
