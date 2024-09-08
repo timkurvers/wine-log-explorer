@@ -14,8 +14,8 @@ const input = stripIndent`
   00c8:00cc:class:channel:logger message 2
   00c8:00cc:class:channel:logger message 3
   00c8:00bb:class:channel:logger message alt.1 (different thread, not part of call tree)
-  00c8:00bb:class:channel:logger message alt.2 (different thread, too)
   00c8:00cc:Ret innermod.func() retval=0 ret=1
+  00c8:00bb:class:channel:logger message alt.2 (different thread, too)
   00c8:00cc:class:channel:logger message 4
   00c8:00cc:Ret  mod.func() retval=0 ret=0
   00c8:00cc:class:channel:logger message 5
@@ -34,8 +34,8 @@ const [
   ____msg2,
   ____msg3,
   altMsg1,
-  altMsg2,
   ____innermodFuncRet,
+  altMsg2,
   __msg4,
   __modFuncRet,
   msg5,
@@ -182,8 +182,8 @@ describe('tree utilities', () => {
         ____msg2,
         ____msg3,
         altMsg1,
-        altMsg2,
         ____innermodFuncRet,
+        altMsg2,
         __msg4,
         __modFuncRet,
         msg5,

@@ -66,10 +66,16 @@ export const compactTreeForCall = (
   let post: LogEntry[] = []
   if (call.return) {
     // Need to look up return entry in all entries (may not be visible)
-    const next = all[all.indexOf(call.return) + 1]
+    const nextIndexAll = all.indexOf(call.return) + 1
+    const next = all[nextIndexAll]
     const nextIndex = compact.indexOf(next)
+
     if (nextIndex !== -1) {
+      // When visible: take a quick slice from the currently visible list
       post = compact.slice(nextIndex)
+    } else {
+      // Otherwise: recalculate from all entries
+      post = all.slice(nextIndexAll).filter((entry) => isVisible(entry) && (!filter || filter(entry)))
     }
   }
 
