@@ -1,7 +1,7 @@
 export type pid = string
 export type tid = string
 export type eid = number
-export type msgclass = string
+export type msgclass = 'fixme' | 'err' | 'warn' | 'trace'
 export type channel = string
 export type logger = string
 export type module = string
@@ -21,15 +21,18 @@ export interface LogThread {
 export enum LogEntryType {
   CALL = 'Call',
   RETURN = 'Ret',
-  MESSAGE = 'Message',
+  TEXT = 'Text',
 }
 
 export interface LogEntryCommon {
   id: eid
+  time?: number
+}
+
+export interface LogEntryProcessCommon {
   process: LogProcess
   thread: LogThread
   parent?: LogEntryCall
-  time?: number
 }
 
 export interface LogEntryRelayCommon {
@@ -38,15 +41,17 @@ export interface LogEntryRelayCommon {
   callsite: string
 }
 
-export type LogEntryMessage = LogEntryCommon & {
-  type?: LogEntryType.MESSAGE
-  class: msgclass
-  channel: channel
-  logger: logger
-  message: string
-}
+export type LogEntryMessage = LogEntryCommon &
+  LogEntryProcessCommon & {
+    type?: never
+    class: msgclass
+    channel: channel
+    logger: logger
+    message: string
+  }
 
 export type LogEntryCall = LogEntryCommon &
+  LogEntryProcessCommon &
   LogEntryRelayCommon & {
     type: LogEntryType.CALL
     args?: string[]
@@ -56,12 +61,19 @@ export type LogEntryCall = LogEntryCommon &
   }
 
 export type LogEntryReturn = LogEntryCommon &
+  LogEntryProcessCommon &
   LogEntryRelayCommon & {
     type: LogEntryType.RETURN
     retval: string
   }
 
-export type LogEntry = LogEntryMessage | LogEntryCall | LogEntryReturn
+export type LogEntryText = LogEntryCommon & {
+  type: LogEntryType.TEXT
+  text: string
+  parent?: never
+}
+
+export type LogEntry = LogEntryMessage | LogEntryCall | LogEntryReturn | LogEntryText
 
 export interface LogParseResult {
   processes: LogProcess[]

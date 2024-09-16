@@ -32,9 +32,8 @@ const findIndexMatching = (
 
     switch (entry.type) {
       default:
-      case LogEntryType.MESSAGE:
         if (
-          // TODO: class not visible in UI: icontains(entry.class, text) ||
+          icontains(entry.class, text) ||
           icontains(entry.channel, text) ||
           icontains(entry.logger, text) ||
           icontains(entry.message, text)
@@ -61,6 +60,12 @@ const findIndexMatching = (
           icontains(entry.callsite, text) ||
           icontains(entry.retval, text)
         ) {
+          return index
+        }
+        break
+
+      case LogEntryType.TEXT:
+        if (icontains(entry.text, text)) {
           return index
         }
         break

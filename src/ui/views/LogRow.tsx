@@ -11,6 +11,7 @@ import ChevronCharacter from '../components/ChevronCharacter'
 import SyntaxCharacter from '../components/SyntaxCharacter'
 
 import classes from './Text.module.css'
+import { LogFilterTypes } from '../types'
 
 interface LogRowProps {
   entry: LogEntry
@@ -68,17 +69,44 @@ const LogRowInner = (props: LogRowProps) => {
         </Text>
       </Group>
     )
+  } else if (entry.type === LogEntryType.TEXT) {
+    return (
+      <Group wrap="nowrap">
+        <Badge variant="light" color="gray" flex="none">
+          Text
+        </Badge>
+        <Highlight className={classes.text} {...highlightProps}>
+          {entry.text}
+        </Highlight>
+      </Group>
+    )
   }
 
   return (
     <>
-      {(entry.channel || entry.logger) && (
-        <Badge variant="transparent" color="green" p={0} flex="none">
-          {entry.channel && <Highlight {...highlightProps}>{entry.channel}</Highlight>}
-          {entry.channel && entry.logger && <SyntaxCharacter>:</SyntaxCharacter>}
-          {entry.logger && <Highlight {...highlightProps}>{entry.logger}</Highlight>}
+      <Group gap={0} wrap="nowrap">
+        <Badge variant="transparent" color={LogFilterTypes[entry.class]?.color} p={0} flex="none">
+          <Highlight {...highlightProps}>{entry.class}</Highlight>
         </Badge>
-      )}
+
+        {entry.channel && (
+          <>
+            <SyntaxCharacter size="xs">:</SyntaxCharacter>
+            <Badge variant="transparent" color="grape" p={0} flex="none">
+              <Highlight {...highlightProps}>{entry.channel}</Highlight>
+            </Badge>
+          </>
+        )}
+
+        {entry.logger && (
+          <>
+            <SyntaxCharacter size="xs">:</SyntaxCharacter>
+            <Badge variant="transparent" color="cyan" p={0} flex="none">
+              <Highlight {...highlightProps}>{entry.logger}</Highlight>
+            </Badge>
+          </>
+        )}
+      </Group>
       <Highlight className={classes.text} {...highlightProps}>
         {entry.message}
       </Highlight>
@@ -94,12 +122,16 @@ const LogRow = (props: LogRowProps) => {
   return (
     // Ensure long entries are allowed to expand beyond 100% width
     <Group style={{ ...style, minWidth: '100%', width: 'auto' }} gap="sm" wrap="nowrap">
-      <Badge variant="light" flex="none">
-        {entry.process.name || entry.process.id}
-      </Badge>
-      <Badge variant="light" color="yellow" flex="none">
-        {entry.thread.name || entry.thread.id}
-      </Badge>
+      {entry.type !== LogEntryType.TEXT && (
+        <>
+          <Badge variant="light" flex="none">
+            {entry.process.name || entry.process.id}
+          </Badge>
+          <Badge variant="light" color="yellow" flex="none">
+            {entry.thread.name || entry.thread.id}
+          </Badge>
+        </>
+      )}
       <Group gap="sm" miw={0} wrap="nowrap">
         {Array.from({ length: indent }).map((_, index) => (
           <BoxCharacter.Pipe key={index} />

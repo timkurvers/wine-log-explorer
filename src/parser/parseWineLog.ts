@@ -10,6 +10,8 @@ import {
   LogEntryType,
   type pid,
   type tid,
+  LogEntryProcessCommon,
+  msgclass,
 } from './types'
 
 const TIMESTAMP_START_MATCHER = /^\d+\.\d+:/
@@ -153,8 +155,14 @@ async function parseWineLog(
       if (mode === ParserMode.RECOVERY) {
         cache[0] += line
         mode = ParserMode.BACKFILL_FROM_CACHE
-      } else if (line) {
-        // TODO: Should these skipped / non-parsable lines be logged somewhere?
+      } else {
+        const entry: LogEntry = {
+          id,
+          type: LogEntryType.TEXT,
+          text: line,
+        }
+        entries.push(entry)
+        ++id
       }
       continue
     } else if (mode === ParserMode.RECOVERY) {
@@ -183,7 +191,7 @@ async function parseWineLog(
     const call = calls[pid][tid]
 
     let entry: LogEntry
-    const common: LogEntryCommon = { id, process, thread }
+    const common: LogEntryCommon & LogEntryProcessCommon = { id, process, thread }
 
     if (timestamp) {
       const time = (parseFloat(timestamp) * 1000) | 0
@@ -245,7 +253,8 @@ async function parseWineLog(
       default:
         const [cls, channel = '', logger = ''] = type.split(':')
 
-        entry = { ...common, channel, class: cls, logger, message }
+        // TODO: Ugly cast here
+        entry = { ...common, channel, class: cls as unknown as msgclass, logger, message }
 
         if (channel === RelayChannel.THREADNAME) {
           const strmatch = message.match(WIDE_STRING_MATCHER) as WideStringMatcherRegexResult

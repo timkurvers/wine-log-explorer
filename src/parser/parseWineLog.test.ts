@@ -7,11 +7,6 @@ import { type LogProcess, type LogEntry, LogEntryType, type LogEntryCall, type L
 
 describe('parseWineLog', () => {
   const input = stripIndent`
-    ** Thu Jul 11 21:44:13 2024
-    Starting 'bin/wineloader' 'lib/wine/x86_64-windows/winewrapper.exe' '--run' '--'
-    'C:\\winmemdump\\build\\winmemdump' 'nonexistent.exe'
-
-    wineserver: using server-side synchronization.
     00c8:00cc:Call PE DLL (proc=00006FFFFFFAB810,module=00006FFFFFF40000 L"ntdll.dll",reason=PROCESS_ATTACH,res=000000000021FB00)
     00c8:00cc:Ret  PE DLL (proc=00006FFFFFFAB810,module=00006FFFFFF40000 L"ntdll.dll",reason=PROCESS_ATTACH,res=000000000021FB00) retval=1
     00c8:00cc:trace:module:map_image_into_view mapping PE file L"\\\\??\\\\C:\\\\winmemdump\\\\build\\\\winmemdump.exe" at 0x140000000-0x140a84000
@@ -150,12 +145,6 @@ describe('parseWineLog', () => {
 
   describe('when Wine log is intertwined due to multi-threaded logging', () => {
     const malformed = stripIndent`
-      ** Thu Jul 11 21:44:13 2024
-      Starting 'bin/wineloader' 'lib/wine/x86_64-windows/winewrapper.exe' '--run' '--'
-      'C:\\winmemdump\\build\\winmemdump' 'nonexistent.exe'
-
-      wineserver: using server-side synchronization.
-
       00c8:00c8:00cc:trace:module:map_image_into_view mapping PE file L"\\\\??\\\\C:\\\\windows\\\\system32\\\\ntdll.dll" at 0x6ffffff40000-0x6ffffffe6000
       00c8:00cc:Call KERNEL32.CreateToolhelp32Snapshot(00000002,00000000 L"Random String with )") ret=140001656
       00cc:trace:module:map_image_into_view mapping PE file L"\\\\??\\\\C:\\\\winmemdump\\\\build\\\\winmemdump.exe" at 0x140000000-0x140a84000
@@ -176,12 +165,6 @@ describe('parseWineLog', () => {
 
   describe('when Wine log contains timestamps', () => {
     const timestamped = stripIndent`
-      ** Thu Jul 11 21:44:13 2024
-      Starting 'bin/wineloader' 'lib/wine/x86_64-windows/winewrapper.exe' '--run' '--'
-      'C:\\winmemdump\\build\\winmemdump' 'nonexistent.exe'
-
-      wineserver: using server-side synchronization.
-
       202122.112:00c8:202122.337:00c8:00cc:trace:module:map_image_into_view mapping PE file L"\\\\??\\\\C:\\\\windows\\\\system32\\\\ntdll.dll" at 0x6ffffff40000-0x6ffffffe6000
       202122.562:00c8:00cc:Call KERNEL32.CreateToolhelp32Snapshot(00000002,00000000 L"Random String with )") ret=140001656
       00cc:trace:module:map_image_into_view mapping PE file L"\\\\??\\\\C:\\\\winmemdump\\\\build\\\\winmemdump.exe" at 0x140000000-0x140a84000
@@ -210,7 +193,6 @@ describe('parseWineLog', () => {
   describe('when Wine log contains multi-byte utf8 characters', () => {
     it('preserves these in the parsed result', async () => {
       const fancy = stripIndent`
-        ** Thu Jul 11 21:44:13 2024
         00c8:00cc:trace:locale:print_fancy_chars (a Ā 𐀀)
         00c8:00ff:trace:locale:print_fancy_chars (文 🦄)
       `
@@ -244,7 +226,6 @@ describe('parseWineLog', () => {
   describe('when Wine log contains process and thread information', () => {
     it('exposes this in the parsed result', async () => {
       const info = stripIndent`
-        ** Thu Jul 11 21:44:13 2024
         00aa:00aa:trace:module:get_load_order looking for L"C:\\\\path\\\\to\\\\process.exe"
         00aa:00aa:trace:module:get_load_order looking for L"C:\\\\windows\\\\system32\\\\kernel32.dll"
         00aa:00aa:warn:threadname:NtSetInformationThread Thread renamed to L"initial thread name"
@@ -307,6 +288,70 @@ describe('parseWineLog', () => {
           class: 'warn',
           logger: 'NtSetInformationThread',
           message: 'Thread renamed to L"thread name"',
+        },
+      ])
+    })
+  })
+
+  describe('when Wine log contains text / non-formatted output', () => {
+    it('includes these as text entries in the parsed result', async () => {
+      const input = stripIndent`
+        ** Thu Jul 11 21:44:13 2024
+        Starting 'bin/wineloader' 'lib/wine/x86_64-windows/winewrapper.exe' '--run' '--'
+        'C:\\winmemdump\\build\\winmemdump' 'nonexistent.exe'
+
+        wineserver: using server-side synchronization.
+        00c8:00cc:trace:module:map_image_into_view mapping PE file L"\\\\??\\\\C:\\\\winmemdump\\\\build\\\\winmemdump.exe" at 0x140000000-0x140a84000
+        00c8:00ff:fixme:thread:creator a random message
+      `
+
+      const result = await parseWineLog(input)
+
+      expect(result.processes).toEqual(processes)
+      expect(result.entries).toEqual([
+        {
+          id: 0,
+          type: LogEntryType.TEXT,
+          text: '** Thu Jul 11 21:44:13 2024',
+        },
+        {
+          id: 1,
+          type: LogEntryType.TEXT,
+          text: "Starting 'bin/wineloader' 'lib/wine/x86_64-windows/winewrapper.exe' '--run' '--'",
+        },
+        {
+          id: 2,
+          type: LogEntryType.TEXT,
+          text: "'C:\\winmemdump\\build\\winmemdump' 'nonexistent.exe'",
+        },
+        {
+          id: 3,
+          type: LogEntryType.TEXT,
+          text: '',
+        },
+        {
+          id: 4,
+          type: LogEntryType.TEXT,
+          text: 'wineserver: using server-side synchronization.',
+        },
+        {
+          id: 5,
+          process: process00c8,
+          thread: thread00cc,
+          channel: 'module',
+          class: 'trace',
+          logger: 'map_image_into_view',
+          message:
+            'mapping PE file L"\\\\??\\\\C:\\\\winmemdump\\\\build\\\\winmemdump.exe" at 0x140000000-0x140a84000',
+        },
+        {
+          id: 6,
+          process: process00c8,
+          thread: thread00ff,
+          channel: 'thread',
+          class: 'fixme',
+          logger: 'creator',
+          message: 'a random message',
         },
       ])
     })

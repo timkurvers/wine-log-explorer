@@ -4,7 +4,7 @@ import parseWineLog from '../parser/parseWineLog'
 
 import { calculateDepth, compactTree, compactTreeForCall, isVisible } from './tree'
 import { stripIndent } from './strings'
-import { LogEntry, LogEntryCall } from '../parser/types'
+import { LogEntry, LogEntryCall, LogEntryType } from '../parser/types'
 
 const input = stripIndent`
   00c8:00cc:class:channel:logger message 0
@@ -22,7 +22,7 @@ const input = stripIndent`
   00c8:00bb:class:channel:logger message alt.3 (different thread, too)
 `
 
-const filterByThread = (entry: LogEntry) => entry.thread.id === '00cc'
+const filterByThread = (entry: LogEntry) => entry.type !== LogEntryType.TEXT && entry.thread.id === '00cc'
 
 const { entries } = await parseWineLog(input)
 

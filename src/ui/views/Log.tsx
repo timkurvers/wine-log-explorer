@@ -15,6 +15,8 @@ import {
 } from '@tabler/icons-react'
 
 import Alert from '../components/Alert'
+import ToggleButton from '../components/ToggleButton'
+import { LogFilterType, LogFilterTypes } from '../types'
 import {
   LogEntry,
   type LogEntryCall,
@@ -23,8 +25,14 @@ import {
   type pid,
   type tid,
 } from '../../parser/types'
-import { findNextIndexMatching, findPrevIndexMatching } from '../../utils/search'
-import { compactTree, compactTreeForCall } from '../../utils/tree'
+import {
+  compactTree,
+  compactTreeForCall,
+  enumRecordFor,
+  enumValuesFor,
+  findNextIndexMatching,
+  findPrevIndexMatching,
+} from '../../utils'
 
 import LogRow from './LogRow'
 
@@ -39,8 +47,13 @@ const Log = (props: LogProps) => {
   const { processes, entries } = result
 
   // Filtering
+  const [selectedTypes, setSelectedTypes] = useState(enumRecordFor(LogFilterType, () => true))
   const [selectedProcessIds, setSelectedProcessIds] = useState<pid[]>([])
   const [selectedThreadIds, setSelectedThreadIds] = useState<tid[]>([])
+
+  const toggleSelectedType = useCallback((type: LogFilterType) => {
+    setSelectedTypes((current) => ({ ...current, [type]: !current[type] }))
+  }, [])
 
   // Searching
   const [searchText, setSearchText] = useState('')
@@ -74,17 +87,38 @@ const Log = (props: LogProps) => {
         return false
       }
 
-      if (!filteredProcesses.some((process) => process.id === entry.process.id)) {
+      // Hide text entries when requested
+      if (entry.type === LogEntryType.TEXT && !selectedTypes[LogFilterType.TEXT]) {
         return false
       }
 
-      if (!filteredThreadIds.includes(entry.thread.id)) {
+      // Hide relay (call/ret) entries when requested
+      if (
+        (entry.type === LogEntryType.CALL || entry.type === LogEntryType.RETURN) &&
+        !selectedTypes[LogFilterType.RELAY]
+      ) {
         return false
+      }
+
+      // Hide matching Wine debug class (fixme, err, warn, debug) entries when requested
+      if (!entry.type && entry.class in selectedTypes && !selectedTypes[entry.class as LogFilterType]) {
+        return false
+      }
+
+      // Ensure process / thread is relevant for non-text entries
+      if (entry.type !== LogEntryType.TEXT) {
+        if (!filteredProcesses.some((process) => process.id === entry.process.id)) {
+          return false
+        }
+
+        if (!filteredThreadIds.includes(entry.thread.id)) {
+          return false
+        }
       }
 
       return true
     },
-    [filteredProcesses, filteredThreadIds],
+    [filteredProcesses, filteredThreadIds, selectedTypes],
   )
 
   // Visible entries matching active filter and part of expanded call trees
@@ -93,7 +127,7 @@ const Log = (props: LogProps) => {
   // Applies the initial filtering on mount, too
   useEffect(() => {
     setVisibleEntries(compactTree(entries, activeFilter))
-  }, [filteredProcesses, filteredThreadIds])
+  }, [filteredProcesses, filteredThreadIds, selectedTypes])
 
   const onChangeSearchText = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -225,6 +259,20 @@ const Log = (props: LogProps) => {
   return (
     <Stack flex={1}>
       <Group>
+        <ToggleButton.Group>
+          {enumValuesFor(LogFilterType).map((filterType) => (
+            <ToggleButton
+              active={selectedTypes[filterType]}
+              c={LogFilterTypes[filterType].color}
+              key={filterType}
+              onClick={toggleSelectedType.bind(null, filterType)}
+              tooltip={LogFilterTypes[filterType].label}
+            >
+              {React.createElement(LogFilterTypes[filterType].icon, { size: 18 })}
+            </ToggleButton>
+          ))}
+        </ToggleButton.Group>
+
         <MultiSelect
           clearable
           data={processes.map((process) => ({
