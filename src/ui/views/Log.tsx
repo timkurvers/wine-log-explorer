@@ -9,6 +9,8 @@ import {
   IconAlertTriangleFilled,
   IconArrowNarrowDown,
   IconArrowNarrowUp,
+  IconCpu,
+  IconNeedleThread,
   IconSearch,
 } from '@tabler/icons-react'
 
@@ -224,6 +226,7 @@ const Log = (props: LogProps) => {
             label: process.name || process.id,
           }))}
           flex={1}
+          leftSection={<IconCpu size={18} />}
           onChange={setSelectedProcessIds}
           placeholder="Processes"
           searchable
@@ -239,6 +242,7 @@ const Log = (props: LogProps) => {
             })),
           }))}
           flex={1}
+          leftSection={<IconNeedleThread size={18} />}
           onChange={setSelectedThreadIds}
           placeholder="Threads"
           searchable
@@ -247,7 +251,7 @@ const Log = (props: LogProps) => {
         <form onSubmit={onSearchNextMatch} style={{ flex: 1 }}>
           <TextInput
             error={searchNotFound}
-            leftSection={<IconSearch size={16} />}
+            leftSection={<IconSearch size={18} />}
             onChange={onChangeSearchText}
             placeholder="Search"
             rightSection={
