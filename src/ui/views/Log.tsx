@@ -105,6 +105,8 @@ const Log = (props: LogProps) => {
     (e: React.FormEvent) => {
       e.preventDefault()
 
+      if (!searchText) return
+
       const index = findNextIndexMatching(
         entries,
         searchText,
@@ -122,6 +124,8 @@ const Log = (props: LogProps) => {
   const onSearchPrevMatch = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault()
+
+      if (!searchText) return
 
       const index = findPrevIndexMatching(
         entries,
