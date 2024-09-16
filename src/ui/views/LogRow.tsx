@@ -10,7 +10,7 @@ import BoxCharacter from '../components/BoxCharacter'
 import ChevronCharacter from '../components/ChevronCharacter'
 import SyntaxCharacter from '../components/SyntaxCharacter'
 
-import classes from './LogRow.module.css'
+import classes from './Text.module.css'
 
 interface LogRowProps {
   entry: LogEntry

@@ -28,6 +28,8 @@ import { compactTree, compactTreeForCall } from '../../utils/tree'
 
 import LogRow from './LogRow'
 
+import classes from './Text.module.css'
+
 interface LogProps {
   result: LogParseResult
 }
@@ -278,20 +280,26 @@ const Log = (props: LogProps) => {
       </Group>
 
       <Stack flex={1}>
-        <AutoSizer>
-          {({ height, width }) => (
-            <List
-              width={width}
-              height={height}
-              overscanCount={15}
-              ref={listRef}
-              itemCount={visible.length}
-              itemSize={24}
-            >
-              {createLogRow}
-            </List>
-          )}
-        </AutoSizer>
+        {visible.length ? (
+          <AutoSizer>
+            {({ height, width }) => (
+              <List
+                width={width}
+                height={height}
+                overscanCount={15}
+                ref={listRef}
+                itemCount={visible.length}
+                itemSize={24}
+              >
+                {createLogRow}
+              </List>
+            )}
+          </AutoSizer>
+        ) : (
+          <Text className={classes.text} c="dimmed">
+            No log entries match the current filter(s)
+          </Text>
+        )}
       </Stack>
     </Stack>
   )

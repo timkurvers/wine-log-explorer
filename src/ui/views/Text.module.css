@@ -1,4 +1,4 @@
 .text {
   font-size: calc(0.875rem * var(--mantine-scale));
-  white-space: nowrap;
+  white-space: preserve nowrap;
 }
