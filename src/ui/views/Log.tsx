@@ -30,8 +30,8 @@ import {
   compactTreeForCall,
   enumRecordFor,
   enumValuesFor,
-  findNextIndexMatching,
-  findPrevIndexMatching,
+  findIndexMatching,
+  SearchDirection,
 } from '../../utils'
 
 import LogRow from './LogRow'
@@ -137,44 +137,73 @@ const Log = (props: LogProps) => {
     [setSearchText],
   )
 
-  const onSearchNextMatch = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault()
-
+  const search = useCallback(
+    (direction: SearchDirection) => {
       if (!searchText) return
 
-      const index = findNextIndexMatching(
+      const index = findIndexMatching(
         entries,
         searchText,
-        searchIndex !== undefined ? searchIndex + 1 : undefined,
+        direction,
+        searchIndex !== undefined ? searchIndex + (direction === SearchDirection.NEXT ? 1 : -1) : undefined,
         activeFilter,
       )
+
+      // Keep track of search index for next invocation
       setSearchIndex(index)
+
       if (index === undefined) {
         setSearchNotFound(true)
+        return
+      }
+
+      const entry = entries[index]
+
+      let next = visible
+      let visibleSearchIndex = visible.indexOf(entry)
+
+      // Ensure the entire ancestor hierarchy is expanded when search entry is not yet visible
+      if (visibleSearchIndex === -1) {
+        let current = entry.parent
+        let ancestorToExpand: LogEntryCall | null = null
+        while (current) {
+          if (!current.isExpanded) {
+            current.isExpanded = true
+            ancestorToExpand = current
+          }
+          current = current.parent
+        }
+
+        if (ancestorToExpand) {
+          next = compactTreeForCall(visible, entries, ancestorToExpand, activeFilter)
+        }
+        visibleSearchIndex = next.indexOf(entry)
+      }
+
+      if (visibleSearchIndex !== -1) {
+        setVisibleEntries(next)
+        setVisibleSearchIndex(visibleSearchIndex)
+      } else {
+        setVisibleSearchIndex(undefined)
       }
     },
     [activeFilter, entries, searchText, searchIndex],
   )
 
+  const onSearchNextMatch = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault()
+      search(SearchDirection.NEXT)
+    },
+    [search],
+  )
+
   const onSearchPrevMatch = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault()
-
-      if (!searchText) return
-
-      const index = findPrevIndexMatching(
-        entries,
-        searchText,
-        searchIndex !== undefined ? searchIndex - 1 : undefined,
-        activeFilter,
-      )
-      setSearchIndex(index)
-      if (index === undefined) {
-        setSearchNotFound(true)
-      }
+      search(SearchDirection.PREV)
     },
-    [activeFilter, entries, searchText, searchIndex],
+    [search],
   )
 
   const onToggleExpansion = useCallback(
@@ -193,41 +222,6 @@ const Log = (props: LogProps) => {
     },
     [activeFilter, entries, visible],
   )
-
-  useEffect(() => {
-    if (searchIndex === undefined) return
-
-    const entry = entries[searchIndex]
-
-    // TODO: Likely some race conditions here (depending on how fast the search is executed)
-    let next = visible
-    let visibleSearchIndex = visible.indexOf(entry)
-
-    // Ensure the entire ancestor hierarchy is expanded when search entry is not yet visible
-    if (visibleSearchIndex === -1) {
-      let current = entry.parent
-      let ancestorToExpand: LogEntryCall | null = null
-      while (current) {
-        if (!current.isExpanded) {
-          current.isExpanded = true
-          ancestorToExpand = current
-        }
-        current = current.parent
-      }
-
-      if (ancestorToExpand) {
-        next = compactTreeForCall(visible, entries, ancestorToExpand, activeFilter)
-      }
-      visibleSearchIndex = next.indexOf(entry)
-    }
-
-    if (visibleSearchIndex !== -1) {
-      setVisibleEntries(next)
-      setVisibleSearchIndex(visibleSearchIndex)
-    } else {
-      setVisibleSearchIndex(undefined)
-    }
-  }, [entries, searchIndex])
 
   useEffect(() => {
     if (visibleSearchIndex === undefined) return

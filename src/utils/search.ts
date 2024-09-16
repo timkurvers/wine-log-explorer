@@ -2,7 +2,7 @@ import { type LogEntry, LogEntryType } from '../parser/types'
 
 import { mod } from './math'
 
-enum SearchDirection {
+export enum SearchDirection {
   NEXT = 'next',
   PREV = 'prev',
 }
@@ -14,7 +14,7 @@ interface SearchFilter {
 const icontains = (str: string | undefined, needle: string) =>
   str?.toLowerCase().includes(needle.toLowerCase())
 
-const findIndexMatching = (
+export const findIndexMatching = (
   entries: LogEntry[],
   text: string,
   direction: SearchDirection,
