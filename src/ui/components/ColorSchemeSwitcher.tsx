@@ -12,7 +12,7 @@ const data = [
   {
     value: 'auto',
     label: (
-      <Tooltip label="Auto (browser preference)" offset={10} withArrow={true}>
+      <Tooltip label="Auto (browser preference)" offset={10} withArrow>
         <IconSunMoon {...iconProps} />
       </Tooltip>
     ),
@@ -20,7 +20,7 @@ const data = [
   {
     value: 'light',
     label: (
-      <Tooltip label="Light" offset={10} withArrow={true}>
+      <Tooltip label="Light" offset={10} withArrow>
         <IconSun {...iconProps} />
       </Tooltip>
     ),
@@ -28,7 +28,7 @@ const data = [
   {
     value: 'dark',
     label: (
-      <Tooltip label="Dark" offset={10} withArrow={true}>
+      <Tooltip label="Dark" offset={10} withArrow>
         <IconMoon {...iconProps} />
       </Tooltip>
     ),
