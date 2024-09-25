@@ -47,7 +47,8 @@ export const findIndexMatching = (
           icontains(entry.module, text) ||
           icontains(entry.func, text) ||
           icontains(entry.callsite, text) ||
-          entry.args?.some((arg) => icontains(arg, text))
+          entry.args?.some((arg) => icontains(arg, text)) ||
+          (entry.inlinable && icontains(entry.return?.retval, text))
         ) {
           return index
         }

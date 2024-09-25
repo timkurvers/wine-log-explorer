@@ -32,8 +32,7 @@ describe('search utilities', () => {
       expect(findNextIndexMatching(entries, 'arg1')).toEqual(2)
       expect(findNextIndexMatching(entries, 'arg2')).toEqual(2)
       expect(findNextIndexMatching(entries, 'ca11517e')).toEqual(2)
-
-      expect(findNextIndexMatching(entries, '1337')).toEqual(3)
+      expect(findNextIndexMatching(entries, '1337')).toEqual(2) // inlinable call
 
       expect(findNextIndexMatching(entries, 'text')).toEqual(5)
     })
