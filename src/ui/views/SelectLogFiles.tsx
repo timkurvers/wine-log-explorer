@@ -20,11 +20,11 @@ const SelectLogFiles = (props: SelectLogFilesProps) => {
     <Anchor
       c="dimmed"
       fw="bold"
-      href="https://github.com/timkurvers/wine-log-explorer/compare/v0.4.0...v0.5.0"
+      href="https://github.com/timkurvers/wine-log-explorer/compare/v0.5.0...v0.5.5"
       opacity={0.75}
       target="_blank"
     >
-      v0.5.0
+      v0.5.5
     </Anchor>
   )
 
