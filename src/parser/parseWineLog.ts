@@ -11,13 +11,12 @@ import {
   type pid,
   type tid,
   LogEntryProcessCommon,
-  msgclass,
 } from './types'
 
 const TIMESTAMP_START_MATCHER = /^\d+\.\d+:/
 
 const LINE_MATCHER =
-  /(?:(?<timestamp>\d+\.\d+):)?(?<pid>[a-f0-9]{4}):(?<tid>[a-f0-9]{4}):(?<type>[a-zA-Z_:]+) +(?<message>.+)/
+  /(?:(?<timestamp>\d+\.\d+):)?(?<pid>[a-f0-9]{4}):(?<tid>[a-f0-9]{4}):(?<type>[^\s]+)\s*(?<message>.*)/
 
 const CALL_RET_MATCHER =
   /(?:(?:(?<module>[\w]+)\.(?<func>[\w]+))|(?<unknown>.+))\((?<args>.+)?\)(?: retval=(?<retval>[a-f0-9]+))?(?: ret=(?<callsite>[a-f0-9]+))?/
@@ -26,6 +25,7 @@ const WIDE_STRING_MATCHER = /L"(?<string>.+)"/
 
 const BASENAME_MATCHER = /[^\\]+$/
 
+// TODO: Some captures should be marked optional
 type LineMatcherRegexResult = RegExpExecArray & {
   groups: {
     timestamp: string
@@ -36,6 +36,7 @@ type LineMatcherRegexResult = RegExpExecArray & {
   }
 }
 
+// TODO: Some captures should be marked optional
 type CallRetRegexResult = RegExpExecArray & {
   groups: {
     unknown: string
@@ -253,8 +254,15 @@ async function parseWineLog(
       default:
         const [cls, channel = '', logger = ''] = type.split(':')
 
-        // TODO: Ugly cast here
-        entry = { ...common, channel, class: cls as unknown as msgclass, logger, message }
+        const isValidClass = cls === 'fixme' || cls === 'err' || cls === 'warn' || cls === 'trace'
+
+        entry = {
+          ...common,
+          channel,
+          class: isValidClass ? cls : 'trace',
+          logger,
+          message: isValidClass ? message : `${type} ${message}`,
+        }
 
         if (channel === RelayChannel.THREADNAME) {
           const strmatch = message.match(WIDE_STRING_MATCHER) as WideStringMatcherRegexResult

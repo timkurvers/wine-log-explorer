@@ -143,6 +143,58 @@ describe('parseWineLog', () => {
     expect(result.entries).toEqual(entries)
   })
 
+  it('parses edge-case entries correctly', async () => {
+    const edgecases = stripIndent`
+      00c8:00cc:fixme:d3d:wined3d_guess_card_vendor Received unrecognized GL_VENDOR "Apple". Returning HW_VENDOR_NVIDIA.
+      00c8:00cc:Starting thread proc 00006FFFFDA19130 (arg=000000002D0F0040)
+      00c8:00cc:trace:msvcrt:_initialize_wide_environment
+      00c8:00ff:fixme:secur32:get_cipher_algid unknown algorithm 23
+    `
+
+    const result = await parseWineLog(edgecases)
+
+    expect(result.processes).toEqual(processes)
+    expect(result.entries).toEqual([
+      {
+        id: 0,
+        process: process00c8,
+        thread: thread00cc,
+        channel: 'd3d',
+        class: 'fixme',
+        logger: 'wined3d_guess_card_vendor',
+        message: 'Received unrecognized GL_VENDOR "Apple". Returning HW_VENDOR_NVIDIA.',
+      },
+      {
+        id: 1,
+        process: process00c8,
+        thread: thread00cc,
+        channel: '',
+        // Defaulting to `trace` as `Starting` is not a Wine debug class
+        class: 'trace',
+        logger: '',
+        message: 'Starting thread proc 00006FFFFDA19130 (arg=000000002D0F0040)',
+      },
+      {
+        id: 2,
+        process: process00c8,
+        thread: thread00cc,
+        channel: 'msvcrt',
+        class: 'trace',
+        logger: '_initialize_wide_environment',
+        message: '',
+      },
+      {
+        id: 3,
+        process: process00c8,
+        thread: thread00ff,
+        channel: 'secur32',
+        class: 'fixme',
+        logger: 'get_cipher_algid',
+        message: 'unknown algorithm 23',
+      },
+    ])
+  })
+
   describe('when Wine log is intertwined due to multi-threaded logging', () => {
     const malformed = stripIndent`
       00c8:00c8:00cc:trace:module:map_image_into_view mapping PE file L"\\\\??\\\\C:\\\\windows\\\\system32\\\\ntdll.dll" at 0x6ffffff40000-0x6ffffffe6000
