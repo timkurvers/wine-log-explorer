@@ -22,6 +22,8 @@ import {
   type LogEntryCall,
   LogEntryType,
   type LogParseResult,
+  LogProcess,
+  LogThread,
   type pid,
   type tid,
 } from '../../parser/types'
@@ -37,6 +39,10 @@ import {
 import LogRow from './LogRow'
 
 import classes from './Text.module.css'
+
+const labelFor = (processOrThread: LogProcess | LogThread) => {
+  return processOrThread.name ? `${processOrThread.name} (${processOrThread.id})` : processOrThread.id
+}
 
 interface LogProps {
   result: LogParseResult
@@ -76,7 +82,9 @@ const Log = (props: LogProps) => {
     () =>
       selectedThreadIds.length
         ? selectedThreadIds
-        : filteredProcesses.flatMap((process) => process.threads.map((thread) => thread.id)),
+        : filteredProcesses.flatMap((process) =>
+            process.threads.map((thread) => `${process.id}:${thread.id}`),
+          ),
     [selectedThreadIds, filteredProcesses],
   )
 
@@ -111,7 +119,7 @@ const Log = (props: LogProps) => {
           return false
         }
 
-        if (!filteredThreadIds.includes(entry.thread.id)) {
+        if (!filteredThreadIds.includes(`${entry.process.id}:${entry.thread.id}`)) {
           return false
         }
       }
@@ -271,7 +279,7 @@ const Log = (props: LogProps) => {
           clearable
           data={processes.map((process) => ({
             value: process.id,
-            label: process.name || process.id,
+            label: labelFor(process),
           }))}
           flex={1}
           leftSection={<IconCpu size={18} />}
@@ -283,10 +291,10 @@ const Log = (props: LogProps) => {
         <MultiSelect
           clearable
           data={filteredProcesses.map((process) => ({
-            group: process.name ? `${process.name} (${process.id})` : process.id,
+            group: labelFor(process),
             items: process.threads.map((thread) => ({
-              value: thread.id,
-              label: thread.name || thread.id,
+              value: `${process.id}:${thread.id}`,
+              label: labelFor(thread),
             })),
           }))}
           flex={1}
